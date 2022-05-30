@@ -21,6 +21,7 @@ fi
 RTSP_URL=$(echo $BODY | jq -r '.event.readings | .[] | .value')
 
 echo "Starting object detection demo"
+source ./data_processing/dl_streamer/bin/setupvars.sh
 exec gst-launch-1.0 \
 	urisourcebin uri=$RTSP_URL ! decodebin ! \
 	gvadetect model=${DETECTION_MODEL} model_proc=${DETECTION_MODEL_PROC} device=CPU ! queue ! \
