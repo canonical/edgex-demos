@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+echo "Environment Variables:"
+env
+
 echo "Querying core command for the rtsp URL"
 
 CURL_RES=$(curl --show-error --silent --write-out "%{http_code}" \
