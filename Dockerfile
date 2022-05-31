@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y jq
 
 COPY start-object-detection.sh .
 
-ARG DISPLAY=$DISPLAY
+ENV DISPLAY=:0
 ENV DETECTION_MODEL=/opt/intel/openvino/deployment_tools/open_model_zoo/tools/downloader/intel/yolo-v2-tiny-ava-0001/FP32/yolo-v2-tiny-ava-0001.xml
 ENV DETECTION_MODEL_PROC=/opt/intel/openvino/data_processing/dl_streamer/samples/model_proc/intel/object_detection/yolo-v2-tiny-ava-0001.json
 ENV CORE_COMMAND=http://localhost:59882
