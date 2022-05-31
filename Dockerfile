@@ -26,4 +26,10 @@ ENV DETECTION_MODEL=/opt/intel/openvino/deployment_tools/open_model_zoo/tools/do
 ENV DETECTION_MODEL_PROC=/opt/intel/openvino/data_processing/dl_streamer/samples/model_proc/intel/object_detection/yolo-v2-tiny-ava-0001.json
 ENV CORE_COMMAND=http://localhost:59882
 
+# Add library paths
+# The list is taken from docker container's shell envirinment, e.g.:
+# docker build -t openvino .
+# docker run --entrypoint=env -it --rm openvino | grep LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/opt/intel/openvino/opt/intel/mediasdk/lib64/:/opt/intel/openvino/data_processing/dl_streamer/lib:/opt/intel/openvino/data_processing/gstreamer/lib:/opt/intel/openvino/opencv/lib:/opt/intel/openvino/deployment_tools/ngraph/lib:/opt/intel/openvino/deployment_tools/inference_engine/external/tbb/lib::/opt/intel/openvino/deployment_tools/inference_engine/external/hddl/lib:/opt/intel/openvino/deployment_tools/inference_engine/external/omp/lib:/opt/intel/openvino/deployment_tools/inference_engine/external/gna/lib:/opt/intel/openvino/deployment_tools/inference_engine/external/mkltiny_lnx/lib:/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64
+
 ENTRYPOINT ["./start-object-detection.sh"]
