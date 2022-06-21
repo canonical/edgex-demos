@@ -1,0 +1,15 @@
+# signed model assertion
+*.signed.yaml
+
+# image files
+*.img
+seed.manifest
+
+
+# snap files
+*.snap
+*.assert
+prime/
+stage/
+parts/
+squashfs-root/
