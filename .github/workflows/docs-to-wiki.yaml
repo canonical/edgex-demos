@@ -1,0 +1,61 @@
+name: docs-to-wiki
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout the source repo
+      uses: actions/checkout@v3
+
+    - name: Record commit message
+      run: git show -s --format=%s > commit.txt
+
+    - name: Upload files for next job
+      uses: actions/upload-artifact@v2
+      with:
+        name: docs
+        path: |
+          docs
+          commit.txt
+
+  push:
+    needs: prepare
+    runs-on: ubuntu-latest
+    #if: github.ref == 'refs/heads/main'
+    steps:
+    - name: Checkout wiki repo
+      uses: actions/checkout@v3
+      with:
+        repository: canonical/edgex-demos.wiki
+
+    - name: Download files from previous job
+      uses: actions/download-artifact@v2
+      with:
+        name: docs
+
+    - name: Commit files
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+
+        # move docs to top level
+        mv docs/* .
+
+        added=$(git add --verbose . ':!commit.txt')
+        if [ ! -z "$added" ]; then
+          # commit using the original commit message
+          git commit -m "ci: $(< commit.txt)"
+        else
+          echo "Detected no changes."
+        fi
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
