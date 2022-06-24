@@ -15,7 +15,7 @@ confinement: strict
 # Each source path get mounted as a read-only directory
 #   inside the corresponding plug's target path.
 slots:
-  device-mqtt:
+  device-config:
     interface: content
     source:
       read:
