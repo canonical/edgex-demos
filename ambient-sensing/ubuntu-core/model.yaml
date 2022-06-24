@@ -21,18 +21,13 @@ snaps:
   # We’re going to build it locally and pass it to the image builder. 
   name: pc
   type: gadget
-  default-channel: 20/stable
-  id: UqFziVZDHLSyO3TqSWgNBoAdHbLI4dAH
+  # default-channel: 20/stable
+  # id: UqFziVZDHLSyO3TqSWgNBoAdHbLI4dAH
 
 - name: pc-kernel
   type: kernel
   default-channel: 20/stable
   id: pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza
-
-- name: snapd
-  type: snapd
-  default-channel: latest/stable
-  id: PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4
 
 - name: edgexfoundry
   type: app
@@ -44,12 +39,19 @@ snaps:
   default-channel: latest/stable
   id: AeVDP4oaKGCL9fT0u7lbNKxupwXrGiMX
 
-- name: edgex-ui
-  type: app
-  default-channel: latest/stable
-  id: 9XP2uICRioP5xd6YrpXhP5g4x8XlO5D1
+# - name: edgex-ui
+#   type: app
+#   default-channel: latest/stable
+#   id: 9XP2uICRioP5xd6YrpXhP5g4x8XlO5D1
 
+# Config provider for edgex-device-mqtt
 - name: edgex-demo-ambient-sensing-config
   type: app
   default-channel: latest/edge
   id: 5riI41SdX1gJYFdFXC5eoKzzBUEzSgqq
+
+# MQTT Broker
+- name: mosquitto
+  type : app
+  default-channel: latest/stable
+  id: mDxT0cGOHKSs62MOHSK5Ype0Na5UU2LB
