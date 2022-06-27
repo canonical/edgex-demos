@@ -1,0 +1,6 @@
+[[DeviceList]]
+  Name = "pluto-dht22"
+  ProfileName = "temperature-humidity-sensor"
+  [DeviceList.Protocols]
+    [DeviceList.Protocols.mqtt]
+       CommandTopic = "CommandTopic"  

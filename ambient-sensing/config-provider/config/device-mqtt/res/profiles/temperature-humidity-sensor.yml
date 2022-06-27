@@ -1,0 +1,10 @@
+name: "temperature-humidity-sensor"
+deviceResources:
+- name: temperature
+  properties:
+    valueType: "Float32"
+    readWrite: "R"
+- name: humidity
+  properties:
+    valueType: "Float32"
+    readWrite: "R"

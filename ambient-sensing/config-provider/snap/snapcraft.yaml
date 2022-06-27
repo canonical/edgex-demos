@@ -1,0 +1,34 @@
+name: edgex-demo-ambient-sensing-config
+base: core20
+
+version: demo
+summary: Example EdgeX snaps config provider
+description: |
+  This is a snap to provide configuration files to EdgeX service snaps in the
+  EdgeX Ambient Sensing Demo.
+
+  For more details, refer to https://github.com/canonical/edgex-demos
+grade: stable
+confinement: strict
+
+# The consumer plugs can connect to these slots.
+# Each source path get mounted as a read-only directory
+#   inside the corresponding plug's target path.
+slots:
+  device-config:
+    interface: content
+    source:
+      read:
+        - $SNAP/device-mqtt/res
+
+# Prepare the config files for slots
+parts:
+  device-mqtt:
+    # This example takes source files from the local file system
+    plugin: dump
+    source: config/device-mqtt
+    override-build: |
+      TARGET=$SNAPCRAFT_PART_INSTALL/device-mqtt
+      mkdir -p $TARGET
+      cp -vr res $TARGET/res
+
