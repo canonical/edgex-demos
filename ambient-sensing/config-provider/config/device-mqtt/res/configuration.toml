@@ -88,11 +88,11 @@ UseMessageBus = true
 
 [MQTTBrokerInfo]
 Schema = "tcp"
-Host = "localhost"
+Host = "test.mosquitto.org"
 Port = 1883
 Qos = 0
 KeepAlive = 3600
-ClientId = "device-mqtt-jupiter"
+ClientId = ""
 
 CredentialsRetryTime = 120 # Seconds
 CredentialsRetryWait = 1 # Seconds
@@ -109,7 +109,7 @@ CredentialsPath = "credentials"
 #UseTopicLevels = false
 
 # Uncomment to use multi-level topics
-IncomingTopic = "pi/pluto/#"
+IncomingTopic = "edgex-demo/#"
 ResponseTopic = "command/response/#"
 UseTopicLevels = true
 

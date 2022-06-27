@@ -11,6 +11,10 @@ description: |
 grade: stable
 confinement: strict
 
+architectures:
+  - build-on: arm64
+  - build-on: amd64
+
 # The consumer plugs can connect to these slots.
 # Each source path get mounted as a read-only directory
 #   inside the corresponding plug's target path.
