@@ -1,0 +1,4 @@
+[submodule "ambient-sensing/pc-amd64-gadget"]
+	path = ambient-sensing/pc-amd64-gadget
+	url = https://github.com/farshidtz/snapcore-pc-amd64-gadget.git
+	branch = edgex-demo-ambient-sensing
