@@ -124,7 +124,7 @@ edgex-openvino-object-detection docker image we used in this demo consists of fo
 - [yolo-v2-tiny-ava-0001 Object Detection Models](https://docs.openvino.ai/latest/omz_models_model_yolo_v2_tiny_ava_0001.html)
 
 #### Build the Docker image
-The current (openvino-object-detection) directory in this repo contains the Dockerfile to build a docker image.
+The current ([openvino-object-detection](.)) directory in this repo contains the Dockerfile to build a docker image.
 
 Use the following command to build the image locally. We call it `edgex-openvino-object-detection` and use it locally in the next steps.
 ```bash
