@@ -130,7 +130,7 @@ Use the following command to build the image locally. We call it `edgex-openvino
 ```bash
 docker build . --tag edgex-openvino-object-detection
 ```
-You can upload this image to a docker registry and use it on other machines. Refer to [License](./#License) before re-distributing the image.
+You can upload this image to a docker registry and use it on other machines. Refer to [License](#license) before re-distributing the image.
 
 #### Run the container
 Install docker, if you don’t already have it:
