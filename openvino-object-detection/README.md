@@ -332,18 +332,18 @@ Select JSON API and set the following parameters:
 * URL: http://localhost:59880/api/v2/reading
 
 Save and test. You should see Not Found as follows, meaning that the server was set correctly but there is no resource at the given URL. To resolve this, we will later on set the HTTP path in the query editor.
-![](https://lh6.googleusercontent.com/ASXSIXANNaM_METFcJ6-BgMAFCn0pYDm0OBs72jEOhUHLsK6UxLoH4xSM0aIsIkmm_gVoFBsDNmJDqbNtBH82O2l5qXevL9bGUsc8ylJShVAReqGaensP_o0iGAA1oLbtNDyOdwBOCM7ctetug)
+![grafana-datasource-not-found](figures/grafana-datasource-not-found.png)
 
 #### Create a dashboard
 To do so, go follow: + -> Create / Dashboard
 
 > **[tip]**  
 > The remaining configurations are available as a Grafana dashboard export:
-> 1. Go to dashboard settings -> JSON Model -> add the content of [grafana-dashboard.json]> (https://github.com/canonical/edgex-demos/blob/main/openvino-object-detection/grafana-dashboard.json)
+> 1. Go to dashboard settings -> JSON Model -> add the content of [grafana-dashboard.json](grafana-dashboard.json)
 > 2. Skip all the next Grafana-related configuration steps.
 
 Set the query range to 5min and refresh rate to `5s`
-![](https://lh6.googleusercontent.com/a-BNhOU976M4rYAP77F422mI-zFlwUXtaXA2_owywuY4DAg6ggFBrOOAqchc7mSIU9uJ6xH16ljq2dyP6uR-e1uLCeEPkiXKpceITqfEjHdpHraykH3mfGND_m83vL3nR7En4JjC9sn3Vc-tWw)
+![grafana-dashboard-refresh-rate](figures/grafana-dashboard-refresh-rate.png)
 
 > **[tip]**  
 > The range can be shorted by manually entering the from value such as: now-1m
@@ -358,7 +358,7 @@ b. Setup query and transformation:
 -   Param key `limit`, value `1000` (this is the number or readings queried from core-data)
 -   Cache time: `0s` (otherwise, the datasource won’t query the core-data on refresh!)
 
-At this point, we should be able to see data on a table:![](https://lh6.googleusercontent.com/lJ7kAay6PqxfpQ3_8GIVvFX9Ft821aiaFH5ewBZwjOm4htDgZgBZ5FUeEaMYT-UiOZwXj3r2R2-L6jbIDLqdxoLBwGDrph6NWhnZ6OfATIer0nWugGQrHZqv-9_Ydi03umpbMDxVWbngCpZp1A)
+At this point, we should be able to see data on a table:![grafana-panel-table-view](figures/grafana-panel-table-view.png)
 
 To visualize time series as line graph, we need to add two transformation:
 
@@ -368,7 +368,7 @@ c. In the Transform tab in the query editor:
 -   Add transformation -> Select "Convert field type"
 -   `Time` as `Time`. This converts the time from Number to Time format.
 
-![](https://lh4.googleusercontent.com/lW1e_ZGWg5lXPsL1iASGYdcGCPjVn7dSowcz59qSNXndDnNpq9r48BrFYubUQNl5jRYYkrVFlQEfBr74_vpjE5VVzwGypX-YgLyqVmbnH8anJ4_JMC8aEjRcbIp9mljbEXb68XWTn8oaybdqaQ)
+![grafana-panel-timeseries-view](figures/grafana-panel-timeseries-view.png)
 
 Auto refresh doesn’t work in the query editor, but only on the dashboard. Refresh manually here to see new results.
 
@@ -377,7 +377,7 @@ d. Final touches, configure Graph Style:
 -   Show Points: `Always`
 
 Save and go back to the dashboard view. It should auto refresh every 5s as previously configured.
-![](https://lh3.googleusercontent.com/82600e39fi3ZoSsnIqW0L6qgBw6LGh78ab9QtVH4zIMhKXzz4N5ouZn13_BglP-g_lMq-NWCUWHT2_13Y7HkM0NydCf6hUKWEuuiz4DNTtlGjBHGHiahRoyEn8QI9pLHdAafr60dv5UQnZWpFg)
+![grafana-dashboard](figures/grafana-dashboard.png)
 
 
 Congratulations! You now have an object detection toolkit that can visualize the results.
