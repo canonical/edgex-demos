@@ -472,7 +472,7 @@ $ snapcraft
 Snapped pc_20-0.4_amd64.snap
 ```
 
-The source code for the gadget snap is available [here](./) (see the submodule).
+The source code for the gadget snap is available [in the same directory](./) (see the pc-amd64-gadget submodule).
 
 Note: You need to rebuild the snap every time you change the gadget.yaml file.
 
