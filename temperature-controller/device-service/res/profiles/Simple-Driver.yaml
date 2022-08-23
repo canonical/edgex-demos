@@ -1,0 +1,43 @@
+apiVersion: "v2"
+name: "BME680"
+manufacturer: "Pimoroni"
+
+description: "Gas sensor"
+
+deviceResources:
+  -
+    name: "Temperature"
+    isHidden: true
+    properties:
+        valueType: "Float32"
+        readWrite: "R"
+  -
+    name: "Humidity"
+    isHidden: true
+    properties:
+        valueType: "Float32"
+        readWrite: "R"
+  # -
+  #   name: "Pressure"
+  #   isHidden: true
+  #   properties:
+  #       valueType: "Float32"
+  #       readWrite: "R"
+  # -
+  #   name: "Gas"
+  #   isHidden: true
+  #   properties:
+  #       valueType: "Int32"
+  #       readWrite: "R"
+  
+deviceCommands:
+  -
+    name: "ReadAll"
+    isHidden: false
+    readWrite: "R"
+    resourceOperations:
+      - { deviceResource: "Temperature" }
+      - { deviceResource: "Humidity" }
+      # - { deviceResource: "Pressure" }
+      # - { deviceResource: "Gas" }
+  

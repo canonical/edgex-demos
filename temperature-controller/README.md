@@ -9,3 +9,9 @@ Control GPIO: https://learn.adafruit.com/circuitpython-on-any-computer-with-ft23
 BME680 sensor: https://learn.pimoroni.com/article/getting-started-with-bme680-breakout
 Library: https://github.com/adafruit/Adafruit_CircuitPython_BME680
 
+## Run test scripts
+Example:
+```bash
+source env.sh
+python test-ft232h-gpio.py
+```
