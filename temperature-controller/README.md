@@ -1,4 +1,6 @@
+# Temperature Controller Demo
 
+## Set up the hardware
 USB to GPIO: https://www.adafruit.com/product/2264
 Pinout: https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/pinouts
 
@@ -14,4 +16,13 @@ Example:
 ```bash
 source env.sh
 python test-ft232h-gpio.py
+```
+
+## Run the device service
+
+```
+sudo snap install edgexfoundry --edge
+./add-addon-service.sh
+cd device-service
+go run .
 ```
