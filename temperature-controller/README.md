@@ -20,10 +20,18 @@ python test-ft232h-gpio.py
 
 ## Run the device service
 
+Install dependencies:
 ```
 sudo snap install edgexfoundry --edge
+```
+
+Get a token from edgexfoundry:
+```
 ./add-addon-service.sh
-cd device-service
+```
+
+Go to `device-service` and configure the devices. Then build and run:
+```
 go run .
 ```
 
