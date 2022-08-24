@@ -4,9 +4,8 @@
   # Description = "Gas sensor"
   # Labels = [ "industrial" ]
   [DeviceList.Protocols]
-  [DeviceList.Protocols.other]
-    Address = "simple01"
-    Port = "300"
+  [DeviceList.Protocols.i2c]
+    Address = "0x76"
   [[DeviceList.AutoEvents]]
     Interval = "30s"
     OnChange = false

@@ -11,13 +11,9 @@
 package driver
 
 import (
-	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"image"
-	"image/jpeg"
-	"image/png"
-	"os"
 	"os/exec"
 	"reflect"
 	"time"
@@ -41,41 +37,6 @@ type SimpleDriver struct {
 	counter       interface{}
 	stringArray   []string
 	serviceConfig *config.ServiceConfig
-}
-
-func getImageBytes(imgFile string, buf *bytes.Buffer) error {
-	// Read existing image from file
-	img, err := os.Open(imgFile)
-	if err != nil {
-		return err
-	}
-	defer img.Close()
-
-	// TODO: Attach MediaType property, determine if decoding
-	//  early is required (to optimize edge processing)
-
-	// Expect "png" or "jpeg" image type
-	imageData, imageType, err := image.Decode(img)
-	if err != nil {
-		return err
-	}
-	// Finished with file. Reset file pointer
-	_, err = img.Seek(0, 0)
-	if err != nil {
-		return err
-	}
-	if imageType == "jpeg" {
-		err = jpeg.Encode(buf, imageData, nil)
-		if err != nil {
-			return err
-		}
-	} else if imageType == "png" {
-		err = png.Encode(buf, imageData)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // Initialize performs protocol-specific initialization for the device
@@ -153,15 +114,16 @@ func (s *SimpleDriver) HandleReadCommands(deviceName string, protocols map[strin
 	s.lc.Debugf("SimpleDriver.HandleReadCommands: protocols: %v resource: %v attributes: %v", protocols, reqs[0].DeviceResourceName, reqs[0].Attributes)
 
 	if len(reqs) == 2 {
-		res = make([]*sdkModels.CommandValue, 3)
 		cmd := exec.Cmd{
-			Path: "bme680.py",
-			// Args: []string{"bme680.py"},
+			Path: "/bin/python",
 			Env: []string{
-				// "PYTHONUNBUFFERED=true",
 				"BLINKA_FT232H=true",
 			},
 		}
+		cmd.Args = append(cmd.Args, cmd.Path,
+			"bme680.py", // script path
+			"-i2c", protocols["i2c"]["Address"])
+
 		b, err := cmd.CombinedOutput()
 		if err != nil {
 			return nil, fmt.Errorf("%s: %s", err, b)
@@ -173,6 +135,7 @@ func (s *SimpleDriver) HandleReadCommands(deviceName string, protocols map[strin
 			return nil, err
 		}
 
+		res = make([]*sdkModels.CommandValue, len(reqs))
 		for i, r := range reqs {
 			var value any
 			switch r.DeviceResourceName {
@@ -313,24 +276,17 @@ func (s *SimpleDriver) Discover() {
 }
 
 func (s *SimpleDriver) ValidateDevice(device models.Device) error {
-	// protocol, ok := device.Protocols["other"]
-	// if !ok {
-	// 	return errors.New("missing 'other' protocols")
-	// }
+	i2c, ok := device.Protocols["i2c"]
+	if !ok {
+		return errors.New("missing 'i2c' protocol")
+	}
 
-	// addr, ok := protocol["Address"]
-	// if !ok {
-	// 	return errors.New("missing 'Address' information")
-	// } else if addr == "" {
-	// 	return errors.New("address must not empty")
-	// }
-
-	// port, ok := protocol["Port"]
-	// if !ok {
-	// 	return errors.New("missing 'Port' information")
-	// } else if _, err := strconv.Atoi(port); err != nil {
-	// 	return errors.New("port must be a number")
-	// }
+	addr, ok := i2c["Address"]
+	if !ok {
+		return errors.New("missing 'i2c.Address' information")
+	} else if addr == "" {
+		return errors.New("address must not empty")
+	}
 
 	return nil
 }
