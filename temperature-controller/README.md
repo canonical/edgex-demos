@@ -26,3 +26,23 @@ sudo snap install edgexfoundry --edge
 cd device-service
 go run .
 ```
+
+Get sensor values:
+```
+curl -X 'GET' 'http://localhost:59882/api/v2/device/name/GasSensor/ReadAll' | jq
+```
+
+Set GPIO output:
+```
+curl -X 'PUT' -d '{"State": true}'  'http://localhost:59882/api/v2/device/name/Fan/State' | jq
+curl -X 'PUT' -d '{"State": false}'  'http://localhost:59882/api/v2/device/name/Fan/State' | jq
+```
+
+Delete devices and profiles:
+```
+# Gas sensor
+curl -X 'DELETE'   'http://localhost:59881/api/v2/device/name/GasSensor' && curl -X 'DELETE'   'http://localhost:59881/api/v2/deviceprofile/name/BME680'
+
+# GPIO
+curl -X 'DELETE'   'http://localhost:59881/api/v2/device/name/Fan' && curl -X 'DELETE'   'http://localhost:59881/api/v2/deviceprofile/name/FanController' 
+```

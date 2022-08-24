@@ -1,0 +1,19 @@
+apiVersion: "v2"
+name: "FanController"
+
+description: "Controlling the state of a fan"
+
+deviceResources:
+  - name: "State"
+    isHidden: false
+    properties:
+        valueType: "Bool"
+        readWrite: "W"
+
+# deviceCommands:
+#   - name: "FanState"
+#     isHidden: false
+#     readWrite: "W"
+#     resourceOperations:
+#       - { deviceResource: "State" }
+  

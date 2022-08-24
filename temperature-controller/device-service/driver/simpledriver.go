@@ -30,10 +30,7 @@ type SimpleDriver struct {
 	lc            logger.LoggingClient
 	asyncCh       chan<- *sdkModels.AsyncValues
 	deviceCh      chan<- []sdkModels.DiscoveredDevice
-	switchButton  bool
-	xRotation     int32
-	yRotation     int32
-	zRotation     int32
+	fanState      bool
 	counter       interface{}
 	stringArray   []string
 	serviceConfig *config.ServiceConfig
@@ -121,14 +118,14 @@ func (s *SimpleDriver) HandleReadCommands(deviceName string, protocols map[strin
 			},
 		}
 		cmd.Args = append(cmd.Args, cmd.Path,
-			"bme680.py", // script path
+			"ft232h-bme680.py", // script path
 			"-i2c", protocols["i2c"]["Address"])
 
 		b, err := cmd.CombinedOutput()
 		if err != nil {
 			return nil, fmt.Errorf("%s: %s", err, b)
 		}
-		fmt.Printf("Output: %s\n", b)
+		s.lc.Debugf("Script output: %s\n", b)
 		var data bme680
 		err = json.Unmarshal(b, &data)
 		if err != nil {
@@ -167,46 +164,35 @@ func (s *SimpleDriver) HandleWriteCommands(deviceName string, protocols map[stri
 	params []*sdkModels.CommandValue) error {
 	var err error
 
+	fmt.Printf("reqs: %v\n", reqs)
+	fmt.Printf("protocols: %v\n", protocols)
+
 	for i, r := range reqs {
 		s.lc.Debugf("SimpleDriver.HandleWriteCommands: protocols: %v, resource: %v, parameters: %v, attributes: %v", protocols, reqs[i].DeviceResourceName, params[i], reqs[i].Attributes)
 		switch r.DeviceResourceName {
-		case "SwitchButton":
-			if s.switchButton, err = params[i].BoolValue(); err != nil {
+		case "State":
+			if s.fanState, err = params[i].BoolValue(); err != nil {
 				err := fmt.Errorf("SimpleDriver.HandleWriteCommands; the data type of parameter should be Boolean, parameter: %s", params[0].String())
 				return err
 			}
-		case "Xrotation":
-			if s.xRotation, err = params[i].Int32Value(); err != nil {
-				err := fmt.Errorf("SimpleDriver.HandleWriteCommands; the data type of parameter should be Int32, parameter: %s", params[i].String())
-				return err
+			fmt.Printf("Fan state: %v\n", s.fanState)
+
+			cmd := exec.Cmd{
+				Path: "/bin/python",
+				Env: []string{
+					"BLINKA_FT232H=true",
+				},
 			}
-		case "Yrotation":
-			if s.yRotation, err = params[i].Int32Value(); err != nil {
-				err := fmt.Errorf("SimpleDriver.HandleWriteCommands; the data type of parameter should be Int32, parameter: %s", params[i].String())
-				return err
+			cmd.Args = append(cmd.Args, cmd.Path,
+				"ft232h-gpio.py", // script path
+				"-pin", protocols["gpio"]["Pin"],
+				"-value", fmt.Sprint(s.fanState))
+
+			b, err := cmd.CombinedOutput()
+			if err != nil {
+				return fmt.Errorf("%s: %s", err, b)
 			}
-		case "Zrotation":
-			if s.zRotation, err = params[i].Int32Value(); err != nil {
-				err := fmt.Errorf("SimpleDriver.HandleWriteCommands; the data type of parameter should be Int32, parameter: %s", params[i].String())
-				return err
-			}
-		case "StringArray":
-			if s.stringArray, err = params[i].StringArrayValue(); err != nil {
-				err := fmt.Errorf("SimpleDriver.HandleWriteCommands; the data type of parameter should be string array, parameter: %s", params[i].String())
-				return err
-			}
-		case "Uint8Array":
-			v, err := params[i].Uint8ArrayValue()
-			if err == nil {
-				s.lc.Debugf("Uint8 array value from write command: ", v)
-			} else {
-				return err
-			}
-		case "Counter":
-			if s.counter, err = params[i].ObjectValue(); err != nil {
-				err := fmt.Errorf("SimpleDriver.HandleWriteCommands; the data type of parameter should be Object, parameter: %s", params[i].String())
-				return err
-			}
+			s.lc.Debugf("Script output: %s\n", b)
 		}
 	}
 
@@ -276,16 +262,32 @@ func (s *SimpleDriver) Discover() {
 }
 
 func (s *SimpleDriver) ValidateDevice(device models.Device) error {
-	i2c, ok := device.Protocols["i2c"]
-	if !ok {
-		return errors.New("missing 'i2c' protocol")
+	if device.ProfileName == "BME680" {
+		i2c, ok := device.Protocols["i2c"]
+		if !ok {
+			return errors.New("missing 'i2c' protocol")
+		}
+
+		addr, ok := i2c["Address"]
+		if !ok {
+			return errors.New("missing 'i2c.Address' value")
+		} else if addr == "" {
+			return errors.New("'i2c.address' must not empty")
+		}
 	}
 
-	addr, ok := i2c["Address"]
-	if !ok {
-		return errors.New("missing 'i2c.Address' information")
-	} else if addr == "" {
-		return errors.New("address must not empty")
+	if device.ProfileName == "FanController" {
+		gpio, ok := device.Protocols["gpio"]
+		if !ok {
+			return errors.New("missing 'gpio' protocol")
+		}
+
+		pin, ok := gpio["Pin"]
+		if !ok {
+			return errors.New("missing 'gpio.pin' value")
+		} else if pin == "" {
+			return errors.New("'gpio.pin' must not empty")
+		}
 	}
 
 	return nil
