@@ -25,7 +25,7 @@ import (
 	"github.com/edgexfoundry/device-simple/config"
 )
 
-type SimpleDriver struct {
+type Driver struct {
 	lc            logger.LoggingClient
 	fanState      bool
 	serviceConfig *config.ServiceConfig
@@ -33,7 +33,7 @@ type SimpleDriver struct {
 
 // Initialize performs protocol-specific initialization for the device
 // service.
-func (s *SimpleDriver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModels.AsyncValues, deviceCh chan<- []sdkModels.DiscoveredDevice) error {
+func (s *Driver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModels.AsyncValues, deviceCh chan<- []sdkModels.DiscoveredDevice) error {
 	s.lc = lc
 	s.serviceConfig = &config.ServiceConfig{}
 
@@ -68,8 +68,8 @@ type bme680 struct {
 }
 
 // HandleReadCommands triggers a protocol Read operation for the specified device.
-func (s *SimpleDriver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModels.CommandRequest) (res []*sdkModels.CommandValue, err error) {
-	s.lc.Debugf("SimpleDriver.HandleReadCommands: protocols: %v resource: %v attributes: %v", protocols, reqs[0].DeviceResourceName, reqs[0].Attributes)
+func (s *Driver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModels.CommandRequest) (res []*sdkModels.CommandValue, err error) {
+	s.lc.Debugf("Driver.HandleReadCommands: protocols: %v resource: %v attributes: %v", protocols, reqs[0].DeviceResourceName, reqs[0].Attributes)
 
 	// handle device command
 	if len(reqs) == 2 &&
@@ -125,7 +125,7 @@ func (s *SimpleDriver) HandleReadCommands(deviceName string, protocols map[strin
 // a ResourceOperation for a specific device resource.
 // Since the commands are actuation commands, params provide parameters for the individual
 // command.
-func (s *SimpleDriver) HandleWriteCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModels.CommandRequest,
+func (s *Driver) HandleWriteCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModels.CommandRequest,
 	params []*sdkModels.CommandValue) error {
 	var err error
 
@@ -133,11 +133,11 @@ func (s *SimpleDriver) HandleWriteCommands(deviceName string, protocols map[stri
 	fmt.Printf("protocols: %v\n", protocols)
 
 	for i, r := range reqs {
-		s.lc.Debugf("SimpleDriver.HandleWriteCommands: protocols: %v, resource: %v, parameters: %v, attributes: %v", protocols, reqs[i].DeviceResourceName, params[i], reqs[i].Attributes)
+		s.lc.Debugf("Driver.HandleWriteCommands: protocols: %v, resource: %v, parameters: %v, attributes: %v", protocols, reqs[i].DeviceResourceName, params[i], reqs[i].Attributes)
 		switch r.DeviceResourceName {
 		case "State":
 			if s.fanState, err = params[i].BoolValue(); err != nil {
-				err := fmt.Errorf("SimpleDriver.HandleWriteCommands; the data type of parameter should be Boolean, parameter: %s", params[0].String())
+				err := fmt.Errorf("Driver.HandleWriteCommands; the data type of parameter should be Boolean, parameter: %s", params[0].String())
 				return err
 			}
 			fmt.Printf("Fan state: %v\n", s.fanState)
@@ -168,40 +168,40 @@ func (s *SimpleDriver) HandleWriteCommands(deviceName string, protocols map[stri
 // if the force parameter is 'true', immediately. The driver is responsible
 // for closing any in-use channels, including the channel used to send async
 // readings (if supported).
-func (s *SimpleDriver) Stop(force bool) error {
+func (s *Driver) Stop(force bool) error {
 	// Then Logging Client might not be initialized
 	if s.lc != nil {
-		s.lc.Debugf("SimpleDriver.Stop called: force=%v", force)
+		s.lc.Debugf("Driver.Stop called: force=%v", force)
 	}
 	return nil
 }
 
 // AddDevice is a callback function that is invoked
 // when a new Device associated with this Device Service is added
-func (s *SimpleDriver) AddDevice(deviceName string, protocols map[string]models.ProtocolProperties, adminState models.AdminState) error {
+func (s *Driver) AddDevice(deviceName string, protocols map[string]models.ProtocolProperties, adminState models.AdminState) error {
 	s.lc.Debugf("a new Device is added: %s", deviceName)
 	return nil
 }
 
 // UpdateDevice is a callback function that is invoked
 // when a Device associated with this Device Service is updated
-func (s *SimpleDriver) UpdateDevice(deviceName string, protocols map[string]models.ProtocolProperties, adminState models.AdminState) error {
+func (s *Driver) UpdateDevice(deviceName string, protocols map[string]models.ProtocolProperties, adminState models.AdminState) error {
 	s.lc.Debugf("Device %s is updated", deviceName)
 	return nil
 }
 
 // RemoveDevice is a callback function that is invoked
 // when a Device associated with this Device Service is removed
-func (s *SimpleDriver) RemoveDevice(deviceName string, protocols map[string]models.ProtocolProperties) error {
+func (s *Driver) RemoveDevice(deviceName string, protocols map[string]models.ProtocolProperties) error {
 	s.lc.Debugf("Device %s is removed", deviceName)
 	return nil
 }
 
 // Discover triggers protocol specific device discovery, which is an asynchronous operation.
 // Devices found as part of this discovery operation are written to the channel devices.
-func (s *SimpleDriver) Discover() {}
+func (s *Driver) Discover() {}
 
-func (s *SimpleDriver) ValidateDevice(device models.Device) error {
+func (s *Driver) ValidateDevice(device models.Device) error {
 	if device.ProfileName == "BME680" {
 		i2c, ok := device.Protocols["i2c"]
 		if !ok {
