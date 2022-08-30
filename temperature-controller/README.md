@@ -32,7 +32,7 @@ Get a token from edgexfoundry:
 
 Go to `device-service` and configure the devices. Then build and run:
 ```
-go run .
+go run . --overwrite
 ```
 
 Get sensor values:

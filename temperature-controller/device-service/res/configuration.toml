@@ -109,9 +109,6 @@ TokenFile = "./secrets-token.json"
     Enabled = false
     Interval = "30s"
 
-# Example structured custom configuration
-[SimpleCustom]
-OnImageLocation = "./res/on.png"
-OffImageLocation = "./res/off.jpg"
-  [SimpleCustom.Writable]
-  DiscoverSleepDurationSecs = 10
+# Custom configuration
+[Driver]
+PythonPath = "/bin/python"

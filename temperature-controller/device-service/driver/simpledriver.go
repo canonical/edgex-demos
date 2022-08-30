@@ -15,24 +15,19 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
-	"reflect"
-	"time"
+	"strings"
 
 	"github.com/edgexfoundry/go-mod-core-contracts/v2/clients/logger"
 	"github.com/edgexfoundry/go-mod-core-contracts/v2/models"
 
-	"github.com/edgexfoundry/device-sdk-go/v2/example/config"
 	sdkModels "github.com/edgexfoundry/device-sdk-go/v2/pkg/models"
 	"github.com/edgexfoundry/device-sdk-go/v2/pkg/service"
+	"github.com/edgexfoundry/device-simple/config"
 )
 
 type SimpleDriver struct {
 	lc            logger.LoggingClient
-	asyncCh       chan<- *sdkModels.AsyncValues
-	deviceCh      chan<- []sdkModels.DiscoveredDevice
 	fanState      bool
-	counter       interface{}
-	stringArray   []string
 	serviceConfig *config.ServiceConfig
 }
 
@@ -40,63 +35,29 @@ type SimpleDriver struct {
 // service.
 func (s *SimpleDriver) Initialize(lc logger.LoggingClient, asyncCh chan<- *sdkModels.AsyncValues, deviceCh chan<- []sdkModels.DiscoveredDevice) error {
 	s.lc = lc
-	s.asyncCh = asyncCh
-	s.deviceCh = deviceCh
 	s.serviceConfig = &config.ServiceConfig{}
-	s.counter = map[string]interface{}{
-		"f1": "ABC",
-		"f2": 123,
-	}
-	s.stringArray = []string{"foo", "bar"}
 
 	ds := service.RunningService()
 
-	if err := ds.LoadCustomConfig(s.serviceConfig, "SimpleCustom"); err != nil {
-		return fmt.Errorf("unable to load 'SimpleCustom' custom configuration: %s", err.Error())
+	if err := ds.LoadCustomConfig(s.serviceConfig, "Driver"); err != nil {
+		return fmt.Errorf("unable to load 'Driver' config: %s", err.Error())
 	}
 
-	lc.Infof("Custom config is: %v", s.serviceConfig.SimpleCustom)
+	lc.Infof("Driver config is: %v", s.serviceConfig.Driver)
 
-	if err := s.serviceConfig.SimpleCustom.Validate(); err != nil {
-		return fmt.Errorf("'SimpleCustom' custom configuration validation failed: %s", err.Error())
+	if err := s.serviceConfig.Driver.Validate(); err != nil {
+		return fmt.Errorf("'Driver' config validation failed: %s", err.Error())
 	}
 
-	if err := ds.ListenForCustomConfigChanges(
-		&s.serviceConfig.SimpleCustom.Writable,
-		"SimpleCustom/Writable", s.ProcessCustomConfigChanges); err != nil {
-		return fmt.Errorf("unable to listen for changes for 'SimpleCustom.Writable' custom configuration: %s", err.Error())
+	out, err := exec.Command(s.serviceConfig.Driver.PythonPath, "--version").CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("unable to get python version: %s: %s", err, out)
+	}
+	if !strings.HasPrefix(string(out), "Python 3") {
+		return fmt.Errorf("expected Python 3, got: %s", out)
 	}
 
 	return nil
-}
-
-// ProcessCustomConfigChanges ...
-func (s *SimpleDriver) ProcessCustomConfigChanges(rawWritableConfig interface{}) {
-	updated, ok := rawWritableConfig.(*config.SimpleWritable)
-	if !ok {
-		s.lc.Error("unable to process custom config updates: Can not cast raw config to type 'SimpleWritable'")
-		return
-	}
-
-	s.lc.Info("Received configuration updates for 'SimpleCustom.Writable' section")
-
-	previous := s.serviceConfig.SimpleCustom.Writable
-	s.serviceConfig.SimpleCustom.Writable = *updated
-
-	if reflect.DeepEqual(previous, *updated) {
-		s.lc.Info("No changes detected")
-		return
-	}
-
-	// Now check to determine what changed.
-	// In this example we only have the one writable setting,
-	// so the check is not really need but left here as an example.
-	// Since this setting is pulled from configuration each time it is need, no extra processing is required.
-	// This may not be true for all settings, such as external host connection info, which
-	// may require re-establishing the connection to the external host for example.
-	if previous.DiscoverSleepDurationSecs != updated.DiscoverSleepDurationSecs {
-		s.lc.Infof("DiscoverSleepDurationSecs changed to: %d", updated.DiscoverSleepDurationSecs)
-	}
 }
 
 type bme680 struct {
@@ -110,9 +71,13 @@ type bme680 struct {
 func (s *SimpleDriver) HandleReadCommands(deviceName string, protocols map[string]models.ProtocolProperties, reqs []sdkModels.CommandRequest) (res []*sdkModels.CommandValue, err error) {
 	s.lc.Debugf("SimpleDriver.HandleReadCommands: protocols: %v resource: %v attributes: %v", protocols, reqs[0].DeviceResourceName, reqs[0].Attributes)
 
-	if len(reqs) == 2 {
+	// handle device command
+	if len(reqs) == 2 &&
+		reqs[0].DeviceResourceName == "Temperature" &&
+		reqs[1].DeviceResourceName == "Humidity" {
+
 		cmd := exec.Cmd{
-			Path: "/bin/python",
+			Path: s.serviceConfig.Driver.PythonPath,
 			Env: []string{
 				"BLINKA_FT232H=true",
 			},
@@ -178,7 +143,7 @@ func (s *SimpleDriver) HandleWriteCommands(deviceName string, protocols map[stri
 			fmt.Printf("Fan state: %v\n", s.fanState)
 
 			cmd := exec.Cmd{
-				Path: "/bin/python",
+				Path: s.serviceConfig.Driver.PythonPath,
 				Env: []string{
 					"BLINKA_FT232H=true",
 				},
@@ -234,32 +199,7 @@ func (s *SimpleDriver) RemoveDevice(deviceName string, protocols map[string]mode
 
 // Discover triggers protocol specific device discovery, which is an asynchronous operation.
 // Devices found as part of this discovery operation are written to the channel devices.
-func (s *SimpleDriver) Discover() {
-	proto := make(map[string]models.ProtocolProperties)
-	proto["other"] = map[string]string{"Address": "simple02", "Port": "301"}
-
-	device2 := sdkModels.DiscoveredDevice{
-		Name:        "Simple-Device02",
-		Protocols:   proto,
-		Description: "found by discovery",
-		Labels:      []string{"auto-discovery"},
-	}
-
-	proto = make(map[string]models.ProtocolProperties)
-	proto["other"] = map[string]string{"Address": "simple03", "Port": "399"}
-
-	device3 := sdkModels.DiscoveredDevice{
-		Name:        "Simple-Device03",
-		Protocols:   proto,
-		Description: "found by discovery",
-		Labels:      []string{"auto-discovery"},
-	}
-
-	res := []sdkModels.DiscoveredDevice{device2, device3}
-
-	time.Sleep(time.Duration(s.serviceConfig.SimpleCustom.Writable.DiscoverSleepDurationSecs) * time.Second)
-	s.deviceCh <- res
-}
+func (s *SimpleDriver) Discover() {}
 
 func (s *SimpleDriver) ValidateDevice(device models.Device) error {
 	if device.ProfileName == "BME680" {
