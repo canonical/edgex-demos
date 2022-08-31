@@ -76,7 +76,7 @@ Please refer to [edgex-ekuiper-snap](https://github.com/canonical/edgex-ekuiper-
 ## Setup streams and rules pipeline
 ```mermaid
 graph TD
-    A[BME680 gas sensor] --> B[deviceMqttStream]
+    A[BME680 gas sensor] --> I.1[edgex message bus] --> B[deviceMqttStream]
     B --> C[humidityFilter]
     B --> D[temperatureFilter]
     C --> E[memory sink]
@@ -87,10 +87,12 @@ graph TD
     G --> H[memery sink]
     
     H --> J[further analysis]
-    G --> I[edgex message bus]
-    I --> K[aggregatorStream]
+    G --> I.2[edgex message bus]
+    I.2 --> K[aggregatorStream]
     K --> L[actuation] 
-    L --> I[edgex message bus]
+    L --> I.2
+style I.1 fill:#f9f,stroke:#333,stroke-width:4px
+style I.2 fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 Create stream deviceMqttStream:
