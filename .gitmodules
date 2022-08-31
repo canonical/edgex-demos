@@ -2,3 +2,6 @@
 	path = ambient-sensing/pc-amd64-gadget
 	url = https://github.com/farshidtz/snapcore-pc-amd64-gadget.git
 	branch = edgex-demo-ambient-sensing
+[submodule "temperature-controller/edgex-device-ft232h-bme680"]
+	path = temperature-controller/edgex-device-ft232h-bme680
+	url = https://github.com/farshidtz/edgex-device-ft232h-bme680.git
