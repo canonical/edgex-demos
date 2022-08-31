@@ -61,17 +61,17 @@ sudo snap install edgex-ekuiper
 Update configuration file in eKuiper to subscribe to all EdgeX events in EdgeX Message bus:
 ```
 sudo nano /var/snap/edgex-ekuiper/current/etc/sources/edgex.yaml
+# change value of `default.topic` from `rules-events` to `edgex/events/#`
+# change value of `default.messageType` from `event` to `request`
 ```
-Change value of `default.topic` from `rules-events` to `edgex/events/#`;
 
-Change value of `default.messageType` from `event` to `request`.
 
 Restart the service to pick up the changes made to the config file:
 ```
 sudo snap restart edgex-ekuiper
 ```
 
-Please refer to [edgex-ekuiper-snap](https://github.com/canonical/edgex-ekuiper-snap#work-without-app-service-configurable-filtering) for for detailed instructions..
+Please refer to [edgex-ekuiper-snap](https://github.com/canonical/edgex-ekuiper-snap#work-without-app-service-configurable-filtering) for detailed instructions.
 
 ## Setup streams and rules pipeline
 ```mermaid
@@ -100,7 +100,7 @@ Create rule humidityFilter:
 ```
 edgex-ekuiper.kuiper-cli create rule humidityFilter '
 {
- "sql":"SELECT humidity,  deviceName FROM deviceMqttStream WHERE humidity > 0 AND humidity < 90",
+ "sql":"SELECT humidity, deviceName FROM deviceMqttStream WHERE humidity > 0 AND humidity < 90",
  "actions": [
      {
        "log":{}
