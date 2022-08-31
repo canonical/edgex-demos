@@ -90,6 +90,7 @@ graph TD
     G --> I[edgex message bus]
     I --> K[aggregatorStream]
     K --> L[actuation] 
+    L --> I[edgex message bus]
 ```
 
 Create stream deviceMqttStream:
@@ -182,6 +183,17 @@ edgex-ekuiper.kuiper-cli create rule actuation '
         "bodyType": "json",
         "dataTemplate":  "{\"State\":{{.actuation}}}",
         "sendSingle": true
+      }
+    }, 
+    {
+      "edgex": {
+        "connectionSelector": "edgex.redisMsgBus",
+        "topicPrefix": "edgex/events/device",
+        "messageType": "request",
+        "sendSingle": true,
+        "deviceName": "actuation",
+        "contentType": "application/json",
+        "dataTemplate": "{\"State\":{{.actuation}}}"
       }
     }
   ]
