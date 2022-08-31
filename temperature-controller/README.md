@@ -56,7 +56,7 @@ curl -X 'DELETE'   'http://localhost:59881/api/v2/device/name/Fan' && curl -X 'D
 ```
 ## Install and configure rules engine (aka eKuiper)
 ```
-sudo snap install edgex-ekuiper
+sudo snap install edgex-ekuiper --edge
 ```
 Update configuration file in eKuiper to subscribe to all EdgeX events in EdgeX Message bus:
 ```
@@ -117,7 +117,7 @@ Create rule temperatureFilter:
 ```
 edgex-ekuiper.kuiper-cli create rule temperatureFilter '
 {
- "sql":"SELECT temperature, deviceName FROM deviceMqttStream WHERE temperature > 0 AND temperature < 100",
+ "sql":"SELECT temperature, deviceName FROM deviceMqttStream WHERE temperature > 0 AND temperature < 85",
  "actions": [
      {
        "log":{}
@@ -170,7 +170,7 @@ Create rule actuation:
 ```
 edgex-ekuiper.kuiper-cli create rule actuation '
 {
-  "sql":"SELECT actuation  FROM aggregatorStream",
+  "sql":"SELECT actuation FROM aggregatorStream WHERE actuation=true OR actuation=false",
   "actions": [
     {
       "log":{}
