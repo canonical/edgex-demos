@@ -76,7 +76,7 @@ Please refer to [edgex-ekuiper-snap](https://github.com/canonical/edgex-ekuiper-
 ## Setup streams and rules pipeline
 ```mermaid
 graph TD
-    A[BME680 gas sensor] --> I.1[edgex message bus] --> B[deviceMqttStream]
+    A[BME680 gas sensor] --> I.1[edgex message bus] --> B[edgexStream]
     B --> C[humidityFilter]
     B --> D[temperatureFilter]
     C --> E[memory sink]
@@ -84,26 +84,34 @@ graph TD
     D --> E
     E --> F[rulesMerger]
     F --> G[aggregator]
-    G --> H[memery sink]
     
-    H --> J[further analysis]
     G --> I.2[edgex message bus]
     I.2 --> K[aggregatorStream]
     K --> L[actuation] 
-    L --> I.2
+    L --> I.3[edgex message bus]
+    
+style B stroke:#333,stroke-width:4px
+style C stroke:#333,stroke-width:4px
+style D stroke:#333,stroke-width:4px
+style E stroke:#333,stroke-width:2px,stroke-dasharray: 5, 5
+style F stroke:#333,stroke-width:4px
+style G stroke:#333,stroke-width:4px
+style K stroke:#333,stroke-width:4px
+
 style I.1 fill:#f9f,stroke:#333,stroke-width:4px
 style I.2 fill:#f9f,stroke:#333,stroke-width:4px
+style I.3 fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
-Create stream deviceMqttStream:
+1. Create stream `edgexStream`:
 ```
-edgex-ekuiper.kuiper-cli create stream deviceMqttStream '() WITH (TYPE="edgex")'
+edgex-ekuiper.kuiper-cli create stream edgexStream '() WITH (TYPE="edgex")'
 ```
-Create rule humidityFilter:
+2. Create rule `humidityFilter`:
 ```
 edgex-ekuiper.kuiper-cli create rule humidityFilter '
 {
- "sql":"SELECT humidity, deviceName FROM deviceMqttStream WHERE humidity > 0 AND humidity < 90",
+ "sql":"SELECT humidity, deviceName FROM edgexStream WHERE humidity > 0 AND humidity < 90",
  "actions": [
      {
        "log":{}
@@ -116,7 +124,7 @@ edgex-ekuiper.kuiper-cli create rule humidityFilter '
   ]
 }'
 ```
-Create rule temperatureFilter:
+3. Create rule `temperatureFilter`:
 ```
 edgex-ekuiper.kuiper-cli create rule temperatureFilter '
 {
@@ -133,11 +141,11 @@ edgex-ekuiper.kuiper-cli create rule temperatureFilter '
   ]
 }'
 ```
-Create stream rulesMerger:
+4. Create stream `rulesMerger`:
 ```
 edgex-ekuiper.kuiper-cli create stream rulesMerger '() WITH (DATASOURCE="result/source/#",TYPE="memory")'
 ```
-Create rule aggregator:
+5. Create rule `aggregator`:
 ```
 edgex-ekuiper.kuiper-cli create rule aggregator '
 {
@@ -145,12 +153,7 @@ edgex-ekuiper.kuiper-cli create rule aggregator '
   "actions": [
     {
       "log":{}
-    }, 
-    {
-      "memory": {
-        "topic": "result/source/aggregator"
-      }
-    }, 
+    },  
     {
       "edgex": {
         "connectionSelector": "edgex.redisMsgBus",
@@ -165,11 +168,11 @@ edgex-ekuiper.kuiper-cli create rule aggregator '
   ]
 }'
 ```
-Create stream aggregatorStream:
+6. Create stream `aggregatorStream`:
 ```
 edgex-ekuiper.kuiper-cli create stream aggregatorStream '() WITH (DATASOURCE="edgex/events/device/aggregator",TYPE="edgex")'
 ```
-Create rule actuation:
+7. Create rule `actuation`:
 ```
 edgex-ekuiper.kuiper-cli create rule actuation '
 {
