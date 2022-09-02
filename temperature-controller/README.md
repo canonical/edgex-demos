@@ -128,7 +128,7 @@ edgex-ekuiper.kuiper-cli create rule humidityFilter '
 ```
 edgex-ekuiper.kuiper-cli create rule temperatureFilter '
 {
- "sql":"SELECT temperature, deviceName FROM deviceMqttStream WHERE temperature > 0 AND temperature < 85",
+ "sql":"SELECT temperature, deviceName FROM edgexStream WHERE temperature > 0 AND temperature < 85",
  "actions": [
      {
        "log":{}
