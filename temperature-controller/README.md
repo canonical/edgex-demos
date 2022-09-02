@@ -1,15 +1,24 @@
-# Temperature Controller Demo
+# Climate Control Demo
+
+This is a guide to setup a simple climate control demo with EdgeX and your personal computer.
+
+## Hardware / Software requirements
+- AMD64 computer with a USB port
+- Ubuntu 22.04
+- [Adafruit FT232H](https://www.adafruit.com/product/2264) USB to GPIO, SPI, I2C breakout board
+- [BME680](https://learn.pimoroni.com/article/getting-started-with-bme680-breakout) gas sensor
+- 3.3v LED or fan for actuation
 
 ## Set up the hardware
-USB to GPIO: https://www.adafruit.com/product/2264
-Pinout: https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/pinouts
+FT232H pinout: https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/pinouts
 
-Setup: https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/linux
+FT232H setup: https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/linux
 
-Control GPIO: https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/gpio
+GPIO: https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/gpio
 
 BME680 sensor: https://learn.pimoroni.com/article/getting-started-with-bme680-breakout
-Library: https://github.com/adafruit/Adafruit_CircuitPython_BME680
+
+BME680 library: https://github.com/adafruit/Adafruit_CircuitPython_BME680
 
 ## Run test scripts
 Example:
@@ -18,42 +27,13 @@ source env.sh
 python test-ft232h-gpio.py
 ```
 
-## Run the device service
-
-Install dependencies:
+## Install EdgeX platform
 ```
 sudo snap install edgexfoundry --edge
 ```
 
-Get a token from edgexfoundry:
-```
-./add-addon-service.sh
-```
-
-Go to `device-service` and configure the devices. Then build and run:
-```
-go run . --overwrite
-```
-
-Get sensor values:
-```
-curl -X 'GET' 'http://localhost:59882/api/v2/device/name/GasSensor/ReadAll' | jq
-```
-
-Set GPIO output:
-```
-curl -X 'PUT' -d '{"State": true}'  'http://localhost:59882/api/v2/device/name/Fan/State' | jq
-curl -X 'PUT' -d '{"State": false}'  'http://localhost:59882/api/v2/device/name/Fan/State' | jq
-```
-
-Delete devices and profiles:
-```
-# Gas sensor
-curl -X 'DELETE'   'http://localhost:59881/api/v2/device/name/GasSensor' && curl -X 'DELETE'   'http://localhost:59881/api/v2/deviceprofile/name/BME680'
-
-# GPIO
-curl -X 'DELETE'   'http://localhost:59881/api/v2/device/name/Fan' && curl -X 'DELETE'   'http://localhost:59881/api/v2/deviceprofile/name/FanController' 
-```
+## Install the device service
+Refer to [edgex-device-ft232h-bme680](https://github.com/farshidtz/edgex-device-ft232h-bme680)
 ## Install and configure rules engine (aka eKuiper)
 ```
 sudo snap install edgex-ekuiper --edge
