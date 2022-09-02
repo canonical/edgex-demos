@@ -111,7 +111,7 @@ edgex-ekuiper.kuiper-cli create stream edgexStream '() WITH (TYPE="edgex")'
 ```
 edgex-ekuiper.kuiper-cli create rule humidityFilter '
 {
- "sql":"SELECT humidity, deviceName FROM edgexStream WHERE humidity > 0 AND humidity < 90",
+ "sql":"SELECT humidity, deviceName FROM edgexStream WHERE humidity > 0 AND humidity < 100",
  "actions": [
      {
        "log":{}
@@ -128,7 +128,7 @@ edgex-ekuiper.kuiper-cli create rule humidityFilter '
 ```
 edgex-ekuiper.kuiper-cli create rule temperatureFilter '
 {
- "sql":"SELECT temperature, deviceName FROM edgexStream WHERE temperature > 0 AND temperature < 85",
+ "sql":"SELECT temperature, deviceName FROM edgexStream WHERE temperature > 0 AND temperature < 100",
  "actions": [
      {
        "log":{}
@@ -162,7 +162,7 @@ edgex-ekuiper.kuiper-cli create rule aggregator '
         "sendSingle": true,
         "deviceName": "aggregator",
         "contentType": "application/json",
-        "dataTemplate": "{{if (or (le .avgHumidity 80.0) (le .avgTemperature 70.0) ) }} {\"actuation\": true} {{else}} {\"actuation\": false} {{end}}"
+        "dataTemplate": "{{if (or (ge .avgHumidity 40.0) (ge .avgTemperature 30.0) ) }} {\"actuation\": true} {{else}} {\"actuation\": false} {{end}}"
       }
     }
   ]
