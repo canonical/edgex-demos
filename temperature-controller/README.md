@@ -124,6 +124,9 @@ edgex-ekuiper.kuiper-cli create rule humidityFilter '
   ]
 }'
 ```
+We send the result of the `humidityFilter` to the memory sink where we can reuse 
+the result in multiple successive rules running in parallel.
+
 3. Create rule `temperatureFilter`:
 ```
 edgex-ekuiper.kuiper-cli create rule temperatureFilter '
@@ -141,6 +144,10 @@ edgex-ekuiper.kuiper-cli create rule temperatureFilter '
   ]
 }'
 ```
+The `temperatureFilter` rule here could be extended into two rules for further analysis.
+As an example, the first rule could filter out extreme or unrealistic data, 
+and the second rule could convert the temperature from Celsius to Fahrenheit.
+
 4. Create stream `rulesMerger`:
 ```
 edgex-ekuiper.kuiper-cli create stream rulesMerger '() WITH (DATASOURCE="result/source/#",TYPE="memory")'
@@ -168,6 +175,10 @@ edgex-ekuiper.kuiper-cli create rule aggregator '
   ]
 }'
 ```
+The rules pipeline can be extended flexibly.
+For example, we could add a memory sink in the `actions` field - as done in steps 2 and 3.
+Then, further rules can consume data from the memory sink and perform more analysis.
+
 6. Create stream `aggregatorStream`:
 ```
 edgex-ekuiper.kuiper-cli create stream aggregatorStream '() WITH (DATASOURCE="edgex/events/device/aggregator",TYPE="edgex")'
