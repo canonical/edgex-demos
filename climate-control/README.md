@@ -3,11 +3,19 @@
 This is a guide to setup a simple climate control demo with EdgeX and your personal computer.
 
 ## Hardware / Software requirements
-- AMD64 computer with a USB port
-- Ubuntu 22.04
+
+```mermaid
+graph TD
+    Computer --USB--> FT232H[Breakout Board] --> Computer
+    FT232H --I2C--> BME680[Gas Sensor] --> FT232H
+    FT232H --GPIO--> Fan
+```
+
+- AMD64 computer with a USB port - This is where we will run EdgeX
+  - Running Ubuntu 22.04
 - [Adafruit FT232H](https://www.adafruit.com/product/2264) USB to GPIO, SPI, I2C breakout board
 - [BME680](https://learn.pimoroni.com/article/getting-started-with-bme680-breakout) gas sensor
-- 3.3v LED or fan for actuation
+- 3.3v fan or LED for actuation
 
 ## Set up the hardware
 FT232H pinout: https://learn.adafruit.com/circuitpython-on-any-computer-with-ft232h/pinouts
