@@ -95,11 +95,14 @@ style I.3 fill:#f9f,stroke:#333,stroke-width:4px
 ```
 edgex-ekuiper.kuiper-cli create stream edgexStream '() WITH (TYPE="edgex")'
 ```
+
+This is our input entry point. This stream collects the data from EdgeX Message Bus and adds it to an eKuiper in-memory stream for further processing by other rules.
+
 2. Create rule `humidityFilter`:
 ```
 edgex-ekuiper.kuiper-cli create rule humidityFilter '
 {
- "sql":"SELECT humidity, deviceName FROM edgexStream WHERE humidity > 0 AND humidity < 100",
+ "sql":"SELECT humidity, deviceName FROM edgexStream WHERE humidity >= 0 AND humidity <= 100",
  "actions": [
      {
        "log":{}
@@ -112,6 +115,9 @@ edgex-ekuiper.kuiper-cli create rule humidityFilter '
   ]
 }'
 ```
+
+This rule is to filter sensible humidity events to avoid out of range values falsely reported from the sensor.
+
 We send the result of the `humidityFilter` to the memory sink where we can reuse 
 the result in multiple successive rules running in parallel.
 
@@ -119,7 +125,7 @@ the result in multiple successive rules running in parallel.
 ```
 edgex-ekuiper.kuiper-cli create rule temperatureFilter '
 {
- "sql":"SELECT temperature, deviceName FROM edgexStream WHERE temperature > 0 AND temperature < 100",
+ "sql":"SELECT temperature, deviceName FROM edgexStream WHERE temperature >= -40 AND temperature <= 85",
  "actions": [
      {
        "log":{}
@@ -132,6 +138,9 @@ edgex-ekuiper.kuiper-cli create rule temperatureFilter '
   ]
 }'
 ```
+
+This rule is to filter out temperature events that are out of range for our sensor.
+
 The `temperatureFilter` rule here could be extended into two rules for further analysis.
 As an example, the first rule could filter out extreme or unrealistic data, 
 and the second rule could convert the temperature from Celsius to Fahrenheit.
@@ -140,6 +149,9 @@ and the second rule could convert the temperature from Celsius to Fahrenheit.
 ```
 edgex-ekuiper.kuiper-cli create stream rulesMerger '() WITH (DATASOURCE="result/source/#",TYPE="memory")'
 ```
+
+This is necessary to multiplex events from all our sources into one in preparation for the next rule.
+
 5. Create rule `aggregator`:
 ```
 edgex-ekuiper.kuiper-cli create rule aggregator '
@@ -157,20 +169,33 @@ edgex-ekuiper.kuiper-cli create rule aggregator '
         "sendSingle": true,
         "deviceName": "aggregator",
         "contentType": "application/json",
-        "dataTemplate": "{{if (or (ge .avgHumidity 40.0) (ge .avgTemperature 30.0) ) }} {\"actuation\": true} {{else}} {\"actuation\": false} {{end}}"
+        "dataTemplate": "{{if (and (ge .avgHumidity 50.0) (ge .avgTemperature 30.0) ) }} {\"actuation\": true} {{else}} {\"actuation\": false} {{end}}"
       }
     }
   ]
 }'
 ```
-The rules pipeline can be extended flexibly.
-For example, we could add a memory sink in the `actions` field - as done in steps 2 and 3.
+
+This rule has two important parts:
+- The sql which is to aggregate data using a [window function](https://ekuiper.org/docs/en/latest/sqls/windows.html) to have stable measurements. 
+- The action that defines what values should trigger an actuation event.
+
+The sql can be modified to have other another window function. For example, using `SLIDINGWINDOW(mi, 10)` instead could provide more frequent output because unlike the hopping window, a sliding window produces a new output after every event.
+
+We could add a memory sink in the actions - as done in steps 2 and 3.
 Then, further rules can consume data from the memory sink and perform more analysis.
+
+The current `edgex` action sends the output to the EdgeX Message Bus.
+The reason we submit the results to message bus instead of memory is because we need to use the `dataTemplate` feature that is currently not supported for memory actions.
+This template is an important part of the rule because it is responsible for deciding when we want to actuate.
 
 6. Create stream `aggregatorStream`:
 ```
 edgex-ekuiper.kuiper-cli create stream aggregatorStream '() WITH (DATASOURCE="edgex/events/device/aggregator",TYPE="edgex")'
 ```
+
+This is used to take the data from EdgeX Message Bus back to the memory for further processing.
+
 7. Create rule `actuation`:
 ```
 edgex-ekuiper.kuiper-cli create rule actuation '
@@ -188,7 +213,15 @@ edgex-ekuiper.kuiper-cli create rule actuation '
         "dataTemplate":  "{\"State\":{{.actuation}}}",
         "sendSingle": true
       }
-    }, 
+    }
+  ]
+}'
+```
+
+Finally, this is where the actuation request takes place. This rule forwards the requests to the REST API of our device service.
+
+If needed, we can forward this data to the EdgeX Message Bus by adding the following action:
+```
     {
       "edgex": {
         "connectionSelector": "edgex.redisMsgBus",
@@ -200,9 +233,10 @@ edgex-ekuiper.kuiper-cli create rule actuation '
         "dataTemplate": "{\"State\":{{.actuation}}}"
       }
     }
-  ]
-}'
 ```
+
+We could also submit the request to EdgeX's [Support Notification](https://docs.edgexfoundry.org/2.2/microservices/support/notifications/Ch-AlertsNotifications/) service to send emails or other notifications.
+
 Viewing and following logs:
 ```
 snap logs -f edgex-ekuiper
