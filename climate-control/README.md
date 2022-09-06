@@ -37,14 +37,14 @@ python test-ft232h-gpio.py
 
 ## Install EdgeX platform
 ```
-sudo snap install edgexfoundry --edge
+sudo snap install edgexfoundry
 ```
 
 ## Install the device service
 Refer to [edgex-device-ft232h-bme680](https://github.com/farshidtz/edgex-device-ft232h-bme680)
 ## Install and configure rules engine (aka eKuiper)
 ```
-sudo snap install edgex-ekuiper --edge
+sudo snap install edgex-ekuiper
 ```
 Update configuration file in eKuiper to subscribe to all EdgeX events in EdgeX Message bus:
 ```
