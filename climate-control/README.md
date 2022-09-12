@@ -241,3 +241,61 @@ Viewing and following logs:
 ```
 snap logs -f edgex-ekuiper
 ```
+
+## Query results
+
+### [EdgeX CLI](https://snapcraft.io/edgex-cli)
+
+1. [Install](https://docs.edgexfoundry.org/2.3/getting-started/Ch-GettingStartedSnapUsers/#edgex-cli)
+
+2. Query
+```
+$ edgex-cli reading list --limit=10
+Origin                Device      ProfileName     Value         ValueType
+12 Sep 22 16:28 CEST  aggregator  ekuiperProfile  false         Bool
+12 Sep 22 16:28 CEST  aggregator  ekuiperProfile  false         Bool
+12 Sep 22 16:28 CEST  GasSensor   BME680          2.569758e+01  Float32
+12 Sep 22 16:28 CEST  GasSensor   BME680          4.895329e+01  Float32
+12 Sep 22 16:28 CEST  aggregator  ekuiperProfile  false         Bool
+12 Sep 22 16:28 CEST  aggregator  ekuiperProfile  false         Bool
+12 Sep 22 16:28 CEST  GasSensor   BME680          4.893637e+01  Float32
+12 Sep 22 16:28 CEST  GasSensor   BME680          2.570812e+01  Float32
+12 Sep 22 16:27 CEST  aggregator  ekuiperProfile  false         Bool
+12 Sep 22 16:27 CEST  aggregator  ekuiperProfile  false         Bool
+```
+
+### [EdgeX UI](https://snapcraft.io/edgex-ui)
+1. [Install](https://docs.edgexfoundry.org/2.3/getting-started/Ch-GettingStartedSnapUsers/#edgex-ui)
+2. [Create a user](https://docs.edgexfoundry.org/2.3/getting-started/Ch-GettingStartedSnapUsers/#adding-api-gateway-users)
+```
+mkdir user
+cd user
+
+# Create a kay pair
+openssl ecparam -genkey -name prime256v1 -noout -out private.pem
+openssl ec -in private.pem -pubout -out public.pem
+
+# Add the public key for a new user
+KONG_ADMIN_JWT=`sudo cat /var/snap/edgexfoundry/current/secrets/security-proxy-setup/kong-admin-jwt`
+edgexfoundry.secrets-config proxy adduser --token-type jwt --user example --algorithm ES256 --public_key public.pem --id 1000 --jwt $KONG_ADMIN_JWT
+
+# Create a JWT token for this user
+edgexfoundry.secrets-config proxy jwt --algorithm ES256 --private_key private.pem --id 1000 --expiration=1h | tee user-jwt.txt
+```
+Copy the output and use it to authenticate in the next step.
+
+3. Visit [http://localhost:4000/](http://localhost:4000/)
+
+The UI allows exploring the data in Data Center:
+![readings stream](./figures/readings-stream.png)
+
+Try editing the data template `edgex` action of the `aggregator` rule to actuate when humidity and temperature are lower.
+
+It also provides interfaces to view and edit the rule engine streams and rules:
+![ekuiper rule](./figures/ekuiper-rule.png)
+
+Or devices and their profiles:
+![devices](./figures/devices.png)
+
+Editing a device:
+![edit a device](./figures/device-gas-sensor.png)
