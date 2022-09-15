@@ -205,8 +205,8 @@ pc.img: DOS/MBR boot sector, extended partition table (last)
 
 The warning is because we side-loaded the gadget for demonstration purposes. In production settings, a custom gadget would need to be uploaded to the [store](https://ubuntu.com/internet-of-things/appstore) to also receive updates.
 
-> Done ✅
-> The image file is now ready to be flashed on a medium to create a bootable drive with the needed applications!
+
+This image file is ready to be flashed on a medium to create a bootable drive!
 
 ### Boot into the OS
 
@@ -234,16 +234,16 @@ sudo qemu-system-x86_64 \
 
 The above command forwards the SSH port `22` of the emulator to `8022` on the host
 
+Once the initial installation is complete, you will get a prompt for your email address to create a new user and deploy your public key for SSH access.
 
-As mentioned before, once the initial installation is complete, you will get a prompt for your email address to deploy your public key.
+> **Note**  
+> The `pc.img` file passed to the emulator persists any changes made to the OS and user files after startup.
+>
+> You can stop and re-start the emulator at a later time without losing your changes.
+>
+> To do a fresh start, your need to rebuild the image.
 
-!!! tip
-    The `pc.img` file passed to the emulator persists any changes made to the OS and user files after startup.
-    You can stop and re-start the emulator at a later time without losing your changes.
-
-    To do a fresh start, your need to rebuild the image.
-
-> **error**
+> **Warning**  
 >> Could not set up host forwarding rule 'tcp::8443-:8443'
 > 
 > This means that the port is not available on the host. Try removing the service that uses this port or change the host port (left hand side) to another port number, e.g. `tcp::18443-:8443`.
