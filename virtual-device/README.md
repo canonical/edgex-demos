@@ -266,7 +266,7 @@ Once the initial installation is complete, you will get a prompt for your email 
 >
 > You can stop and re-start the emulator at a later time without losing your changes.
 >
-> To do a fresh start, your need to rebuild the image.
+> If you didn't create a backup and need to do a fresh start or flash this on disk, your need to rebuild the image.
 
 > **Warning**  
 >> `Could not set up host forwarding rule 'tcp::8443-:8443'`
@@ -277,17 +277,6 @@ Once the initial installation is complete, you will get a prompt for your email 
 > Bad configuration may lead to strange errors during the first boot.
 > In such case, it is best to enable debugging on Ubuntu Core as instructed
 [here](https://gist.github.com/farshidtz/12256b08964a5358a4901fe197c11d76). 
-
-#### Flash the image on disk
-You can use one of following to flash the image:
-
-- [Ubuntu Startup Disk Creator](https://ubuntu.com/tutorials/create-a-usb-stick-on-ubuntu)
-- [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
-- [`dd` command](https://ubuntu.com/download/iot/installation-media)
-
-For instructions specific to a device, refer to Ubuntu Core section [here](https://ubuntu.com/download/iot); for example: [Intel NUC](https://ubuntu.com/download/intel-nuc).
-
-Once the boot is complete, it will prompt for the email address of your [Ubuntu SSO account](https://login.ubuntu.com/) to create a user and deploy your [SSH public keys](https://login.ubuntu.com/ssh-keys). This is done with the help of a program called `console-conf`. Read [here](https://ubuntu.com/core/docs/system-user) to know how this manual step looks like and how it can be automated.
 
 ### TRY IT OUT
 In this step, we connect to the machine that has the image installed over SSH, validate the installation, and interact with some of the EdgeX APIs.
@@ -314,6 +303,52 @@ edgexfoundry          2.2.0+2          3968   latest/stable  canonical✓  -
 pc                    20-0.4           x1     -              -           gadget
 pc-kernel             5.4.0-125.141.1  1090   20/stable      canonical✓  kernel
 snapd                 2.57.1           16778  latest/stable  canonical✓  snapd
+``
+
+Check the status of services:`
+```bash
+# 🚀 Ubuntu Core
+Service                                    Startup   Current   Notes
+edgex-device-virtual.device-virtual        enabled   active    -
+edgexfoundry.app-service-configurable      disabled  inactive  -
+edgexfoundry.consul                        enabled   active    -
+edgexfoundry.core-command                  enabled   active    -
+edgexfoundry.core-data                     enabled   active    -
+edgexfoundry.core-metadata                 enabled   active    -
+edgexfoundry.device-virtual                disabled  inactive  -
+edgexfoundry.kong-daemon                   disabled  inactive  -
+edgexfoundry.kuiper                        disabled  inactive  -
+edgexfoundry.postgres                      disabled  inactive  -
+edgexfoundry.redis                         enabled   active    -
+edgexfoundry.security-bootstrapper-redis   disabled  inactive  -
+edgexfoundry.security-consul-bootstrapper  disabled  inactive  -
+edgexfoundry.security-proxy-setup          disabled  inactive  -
+edgexfoundry.security-secretstore-setup    disabled  inactive  -
+edgexfoundry.support-notifications         disabled  inactive  -
+edgexfoundry.support-scheduler             disabled  inactive  -
+edgexfoundry.sys-mgmt-agent                disabled  inactive  -
+edgexfoundry.vault                         disabled  inactive  -
+```
+You can see that the security components, including the API Gateway (`kong-daemon`) have been disabled.
+
+Verify the snap options set via the gadget. For example, query the set snap options of Device Virtual:
+```bash
+# 🚀 Ubuntu Core
+$ snap get edgex-device-virtual -d
+{
+	"app-options": true,
+	"apps": {
+		"device-virtual": {
+			"config": {
+				"service-startupmsg": "Startup message from gadget!"
+			}
+		}
+	},
+	"autostart": true,
+	"config": {
+		"edgex-security-secret-store": false
+	}
+}
 ```
 
 Let's install the EdgeX CLI to easily query various APIs:
@@ -453,6 +488,35 @@ Keep in mind that for the emulation, the command only exposes the Core Data port
   ]
 }
 ```
+
+#### Flash the image on disk
+Compress an original copy of `pc.img` file to speedup the transfer on disk. If you have used this to install in QEMU, you need to rebuild a new copy.
+
+```bash
+# 🖥 Desktop
+$ xz -vk pc.img
+pc.img (1/1)
+  100 %     817.2 MiB / 3,309.0 MiB = 0.247    10 MiB/s       5:30             
+
+$ ls -lh pc.*
+-rw-rw-r-- 1 farshid farshid 3.3G Sep 16 17:03 pc.img
+-rw-rw-r-- 1 farshid farshid 818M Sep 16 17:03 pc.img.xz
+```
+
+You can use one of following to flash the image:
+
+- [Ubuntu Startup Disk Creator](https://ubuntu.com/tutorials/create-a-usb-stick-on-ubuntu)
+- [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
+- [`dd` command](https://ubuntu.com/download/iot/installation-media)
+
+For instructions specific to a device, refer to Ubuntu Core section [here](https://ubuntu.com/download/iot).
+
+For Intel NUC, follow the instructions [here](https://ubuntu.com/download/intel-nuc), replacing Step 2 and 3 with:
+- Copy the Ubuntu Core image (`pc.img.xz`) to the second USB flash drive.
+
+Once the boot is complete, it will prompt for the email address of your [Ubuntu SSO account](https://login.ubuntu.com/) to create a user and deploy your [SSH public keys](https://login.ubuntu.com/ssh-keys). This is done with the help of a program called `console-conf`. Read [here](https://ubuntu.com/core/docs/system-user) to know how this manual step looks like and how it can be automated.
+
+You may now repeat the instructions given in the [TRY IT OUT](#try-it-out) section, but on the actual device!
 
 
 ## References
