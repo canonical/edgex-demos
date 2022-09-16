@@ -16,6 +16,7 @@ We will use the following tools:
 
 Install the following:
 ```bash
+# 🖥 Desktop
 sudo snap install snapcraft yq
 sudo snap install ubuntu-image --classic
 ```
@@ -30,6 +31,7 @@ To build a Core20 AMD64 gadget, we use the source from [branch `20` of pc-amd64-
 
 Clone the branch of the repository and enter the newly created directory:
 ```bash
+# 🖥 Desktop
 git clone https://github.com/snapcore/pc-amd64-gadget.git --branch=20
 cd pc-amd64-gadget
 ```
@@ -63,6 +65,7 @@ Made the following modification in `gadget.yml`:
 
 Build, from inside the `pc-amd64-gadget` directory:
 ```bash
+# 🖥 Desktop: pc-amd64-gadget
 $ snapcraft
 ...
 Snapped pc_20-0.4_amd64.snap
@@ -77,14 +80,15 @@ The model assertion is a document that describes the contents of the OS image. T
 Refer to [this article](https://ubuntu.com/core/docs/custom-images#heading--signing) for details on how to sign the model assertion.
 
 Change to the parent directory:
-```
+```bash
+# 🖥 Desktop: pc-amd64-gadget
 cd ..
-tree pc-amd64-gadget
 ```
 
 1. Create and register a key if you don't already have one:
 
 ```bash
+# 🖥 Desktop
 snap login
 snap keys
 # continue if you have no existing keys
@@ -100,6 +104,7 @@ First, make yourself familiar with the Ubuntu Core [model assertion](https://ubu
 
 Find your developer ID using the Snapcraft CLI:
 ```bash
+# 🖥 Desktop
 $ snapcraft whoami
 ...
 id: SZ4OfFv8DVM9om64iYrgojDLgbzI0eiL
@@ -173,6 +178,7 @@ We sign the model using the `edgex-demo` key created and registered earlier.
 The `snap sign` command takes JSON as input and produces YAML as output! We use the YQ app to convert our model assertion to JSON before passing it in for signing.
 
 ```bash
+# 🖥 Desktop
 # sign
 yq eval model.yaml -o=json | snap sign -k edgex-demo > model.signed.yaml
 
@@ -227,7 +233,8 @@ Running the image in an emulator makes it easier to quickly try the image and fi
 We use a `amd64` QEMU emulator. You may refer to [Testing Ubuntu Core with QEMU](https://ubuntu.com/core/docs/testing-with-qemu) and [Image building](https://ubuntu.com/core/docs/image-building#heading--testing) for more information.
 
 Run the following command and wait for the boot to complete:
-```bash title="🖥 Desktop"
+```bash
+# 🖥 Desktop
 sudo qemu-system-x86_64 \
  -smp 4 \
  -m 4096 \
@@ -240,7 +247,7 @@ sudo qemu-system-x86_64 \
  -net user,hostfwd=tcp::8022-:22
 ```
 
-The above command forwards the SSH port `22` of the emulator to `8022` on the host
+The above command forwards the SSH port `22` of the emulator to `8022` on the host.
 
 Once the initial installation is complete, you will get a prompt for your email address to create a new user and deploy your public key for SSH access.
 
@@ -265,19 +272,27 @@ You can use one of following to flash the image:
 
 For instructions specific to a device, refer to Ubuntu Core section [here](https://ubuntu.com/download/iot); for example: [Intel NUC](https://ubuntu.com/download/intel-nuc).
 
-Once the boot is complete, it will prompt for the email address of your [Ubuntu SSO account](https://login.ubuntu.com/) to deploy your [SSH public keys](https://login.ubuntu.com/ssh-keys). This is done with the help of a program called `console-conf`. Read [here](https://ubuntu.com/core/docs/system-user) to know how this manual step looks like and how it can be automated.
+Once the boot is complete, it will prompt for the email address of your [Ubuntu SSO account](https://login.ubuntu.com/) to create a user and deploy your [SSH public keys](https://login.ubuntu.com/ssh-keys). This is done with the help of a program called `console-conf`. Read [here](https://ubuntu.com/core/docs/system-user) to know how this manual step looks like and how it can be automated.
 
 ### TRY IT OUT
-In this step, we connect to the machine that has the image installed over SSH, validate the installation, and do some manual configurations.
+In this step, we connect to the machine that has the image installed over SSH, validate the installation, and interact with some of the EdgeX APIs.
 
-We SSH to the emulator from the previous step:
-```bash title="🖥 Desktop"
+SSH to the Ubuntu Core instance that has our user and public key:
+```bash
+# 🖥 Desktop
+ssh <user>@<host> -p <port>
+```
+
+If the instance is emulated as instructed before, the SSH command would be similar to:
+```bash
 ssh <user>@localhost -p 8022
 ```
+
 If you used the default approach (using `console-conf`) and entered your Ubuntu account email address at the end of the installation, then `<user>` is your Ubuntu account ID. If you don't know your ID, look it up using a browser from [here](https://login.ubuntu.com/) or programmatically from `https://login.ubuntu.com/api/v2/keys/<email>`.
 
 List the installed snaps:
-``` title="🚀 Ubuntu Core"
+```bash
+# 🚀 Ubuntu Core
 $ snap list
 Name                  Version          Rev    Tracking       Publisher   Notes
 core20                20220719         1587   latest/stable  canonical✓  base
@@ -290,7 +305,8 @@ snapd                 2.56.2           16292  latest/stable  canonical✓  snapd
 ```
 
 Let's install the EdgeX CLI to easily query various APIs:
-``` title="🚀 Ubuntu Core"
+```bash
+# 🚀 Ubuntu Core
 $ snap install edgex-cli
 edgex-cli 2.2.0 from Canonical✓ installed
 $ edgex-cli --help
@@ -330,28 +346,12 @@ core-data: Thu Aug 11 10:27:47 UTC 2022
 core-command: Thu Aug 11 10:27:47 UTC 2022
 ```
 
-We can verify that the core services are alive.
+This verified that the core services are alive.
 
 Let's now query the devices:
-``` title="🚀 Ubuntu Core"
-$ edgex-cli device list
-No devices available
-```
 
-There are no devices, because the installed EdgeX Device Virtual is disabled and not started by default.
-
-``` title="🚀 Ubuntu Core"
-$ snap start edgex-device-virtual 
-Started.
-$ snap logs -f edgex-device-virtual 
-2022-08-11T10:34:19Z edgex-device-virtual.device-virtual[5483]: level=INFO ts=2022-08-11T10:34:19.238771398Z app=device-virtual source=devices.go:87 msg="Device Random-UnsignedInteger-Device not found in Metadata, adding it ..."
-...
-2022-08-11T10:34:19Z edgex-device-virtual.device-virtual[5483]: level=INFO ts=2022-08-11T10:34:19.247960347Z app=device-virtual source=message.go:58 msg="Service started in: 417.152451ms"
-```
-
-This shows that the virtual devices have been added to Core Metadata and the service has started. Rerun the same CLI command:
-
-``` title="🚀 Ubuntu Core"
+```bash
+# 🚀 Ubuntu Core
 $ edgex-cli device list
 Name                           Description                ServiceName     ProfileName                    Labels                    AutoEvents
 Random-Float-Device            Example of Device Virtual  device-virtual  Random-Float-Device            [device-virtual-example]  [{30s false Float32} {30s false Float64}]
@@ -363,7 +363,8 @@ Random-UnsignedInteger-Device  Example of Device Virtual  device-virtual  Random
 
 From the service logs, we can't see if the service is actually producing data. We can increase the logging verbosity by modifying the service log level:
 
-``` title="🚀 Ubuntu Core"
+```bash
+# 🚀 Ubuntu Core
 $ snap set edgex-device-virtual config.writable-loglevel=DEBUG
 $ snap restart edgex-device-virtual 
 Restarted.
@@ -378,7 +379,8 @@ $ snap logs -f edgex-device-virtual
 
 The data is being published to the message bus and Core Data will be storing it. We can query to find out:
 
-``` title="🚀 Ubuntu Core"
+```bash
+# 🚀 Ubuntu Core
 $ edgex-cli reading list --limit=2
 Origin               Device                         ProfileName                    Value                 ValueType
 11 Aug 22 10:50 UTC  Random-UnsignedInteger-Device  Random-UnsignedInteger-Device  14610331353796717782  Uint64
@@ -390,7 +392,8 @@ We now have a running EdgeX platform with dummy devices, producing synthetic rea
 It is possible to configure the services to listen to other or all interfaces and access them from outside. Note that this will expose the endpoint without any access control!
 
 To make Core Data's server listen to all interfaces (at your own risk):
-``` title="🚀 Ubuntu Core"
+```bash
+# 🚀 Ubuntu Core
 $ snap set edgexfoundry app-options=true
 $ snap set edgexfoundry apps.core-data.config.service-serverbindaddr="0.0.0.0"
 $ snap restart edgexfoundry.core-data
@@ -402,14 +405,16 @@ Restarted
 
 
 Let's exit the SSH session:
-``` title="🚀 Ubuntu Core"
+```bash
+# 🚀 Ubuntu Core
 $ exit
 logout
 Connection to localhost closed.
 ```
 
 ... and query data from outside
-```bash title="🖥 Desktop"
+```bash
+# 🖥 Desktop
 curl --silent --show-err http://localhost:59880/api/v2/reading/all?limit=2 | jq
 ```
 
@@ -442,7 +447,8 @@ curl --silent --show-err http://localhost:59880/api/v2/reading/all?limit=2 | jq
 ```
 
 However, as expected, we can't access securely via the API Gateway:
-```bash title="🖥 Desktop"
+```bash
+# 🖥 Desktop
 curl --insecure https://localhost:8443/core-data/api/v2/reading/all?limit=2
 ```
 
@@ -473,7 +479,8 @@ writing EC key
 ```
 
 Print the public key:
-``` title="🖥 Desktop"
+```bash
+# 🖥 Desktop
 $ cat public.pem 
 -----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE5slZTyp5Zfxoos7TljHgPSbGm3As
