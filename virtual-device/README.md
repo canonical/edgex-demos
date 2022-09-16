@@ -456,6 +456,7 @@ Connection to localhost closed.
 # 🖥 Desktop
 curl --silent --show-err http://localhost:59880/api/v2/reading/all?limit=2 | jq
 ```
+Replace `localhost` with the device IP address when querying from an actual device, rather than the local emulator.
 
 The above is the Core Data endpoint for querying all readings. 
 Refer to [API Reference](https://docs.edgexfoundry.org/2.3/api/Ch-APIIntroduction/) for other endpoints and documentation.
