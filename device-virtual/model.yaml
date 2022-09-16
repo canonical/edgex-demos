@@ -1,0 +1,54 @@
+type: model
+series: '16'
+
+# authority-id and brand-id must be set to YOUR developer-id
+authority-id: SZ4OfFv8DVM9om64iYrgojDLgbzI0eiL
+brand-id: SZ4OfFv8DVM9om64iYrgojDLgbzI0eiL
+
+model: ubuntu-core-20-amd64
+architecture: amd64
+
+# timestamp should be within your signature's validity period
+timestamp: '2022-06-21T10:45:00+00:00'
+base: core20
+
+grade: dangerous
+
+snaps:
+- # This is our custom, dev gadget snap
+  # It has no channel and id, because it isn't in the store.
+  # We're going to build it locally and pass it to the image builder. 
+  name: pc
+  type: gadget
+  # default-channel: 20/stable
+  # id: UqFziVZDHLSyO3TqSWgNBoAdHbLI4dAH
+
+- name: pc-kernel
+  type: kernel
+  default-channel: 20/stable
+  id: pYVQrBcKmBa0mZ4CCN7ExT6jH8rY1hza
+
+- name: snapd
+  type: snapd
+  default-channel: latest/stable
+  id: PMrrV4ml8uWuEUDBT8dSGnKUYbevVhc4
+
+- name: core20
+  type: base
+  default-channel: latest/stable
+  id: DLqre5XGLbDqg9jPtiAhRRjDuPVa5X1q
+
+- name: core22
+  type: base
+  default-channel: latest/stable
+  id: amcUKQILKXHHTlmSa7NMdnXSx02dNeeT
+
+- name: edgexfoundry
+  type: app
+  default-channel: latest/stable
+  id: AZGf0KNnh8aqdkbGATNuRuxnt1GNRKkV
+
+- name: edgex-device-virtual
+  type: app
+  default-channel: latest/edge # device virtual has not been released
+  id: AmKuVTOfsN0uEKsyJG34M8CaMfnIqxc0

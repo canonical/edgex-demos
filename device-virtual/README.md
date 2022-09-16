@@ -14,31 +14,30 @@ We will use the following tools:
 - [ubuntu-image](https://snapcraft.io/ubuntu-image) to build the Ubuntu Core image
 - [EdgeX CLI](https://snapcraft.io/edgex-cli) to query information from EdgeX core components
 
-Install the tools:
+Install the following:
 ```bash
-sudo snap install snapcraft yq edgex-cli
+sudo snap install snapcraft yq
 sudo snap install ubuntu-image --classic
 ```
 
 ## Prepare the Gadget snap
 
-We will use the Core20 [pc-amd64-gadget](https://github.com/snapcore/pc-amd64-gadget) as basis and build on top of it.
-
-The gadget is also available as a prebuilt snap in the store, however, we need to build our own to:
+The gadget is available as a prebuilt snap in the store, however, we need to build our own to:
 - Extend the size of disk volumes to have sufficient capacity for our EdgeX snaps.
 - Add default configuration for the EdgeX snaps
 
-Clone `20` branch of the repository and enter the newly created directory:
+To build a Core20 AMD64 gadget, we use the source from [branch `20` of pc-amd64-gadget](https://github.com/snapcore/pc-amd64-gadget/tree/20).
+
+Clone the branch of the repository and enter the newly created directory:
 ```bash
 git clone https://github.com/snapcore/pc-amd64-gadget.git --branch=20
 cd pc-amd64-gadget
 ```
 
-Modify the following in `gadget.yml`:
-- Under `volumes.pc.structure`:
-  - Find the item with name `ubuntu-seed` and increase its size to `1500M`. This is to make sure our snap will fit in the image.
-  - If planning to use an emulator: Find the item with name `ubuntu-data` and increase its size to `2G`. This is to give sufficient writable storage. When flashing on actual hardware, this volume would automatically take the whole remaining space (NEED TO VERIFY).
-- Add the following at the top level:
+Made the following modification in `gadget.yml`:
+1. Under `volumes.pc.structure`, find the item with name `ubuntu-seed` and increase its size to `1500M`. This is to make sure our snap will fit in the image.
+2. Under `volumes.pc.structure` and only if planning to use an emulator: find the item with name `ubuntu-data` and increase its size to `2G`. This is to give sufficient writable storage. When flashing on actual hardware, this volume would automatically take the whole remaining space (NEED TO VERIFY).
+3. Add the following at the top level:
   ```yml
   # Add default config options
   # The child keys are unique snap IDs
@@ -62,7 +61,7 @@ Modify the following in `gadget.yml`:
       apps.device-virtual.config.service-startupmsg: "Startup message from gadget!"
   ```
 
-Build:
+Build, from inside the `pc-amd64-gadget` directory:
 ```bash
 $ snapcraft
 ...
@@ -77,7 +76,13 @@ The model assertion is a document that describes the contents of the OS image. T
 
 Refer to [this article](https://ubuntu.com/core/docs/custom-images#heading--signing) for details on how to sign the model assertion.
 
-1) Create and register a key if you don't already have one:
+Change to the parent directory:
+```
+cd ..
+tree pc-amd64-gadget
+```
+
+1. Create and register a key if you don't already have one:
 
 ```bash
 snap login
@@ -89,7 +94,7 @@ snapcraft register-key edgex-demo
 ```
 We now have a registered key named `edgex-demo` which we'll use later.
 
-2) Now, create the model assertion.
+2. Create the model assertion
 
 First, make yourself familiar with the Ubuntu Core [model assertion](https://ubuntu.com/core/docs/reference/assertions/model).
 
@@ -97,7 +102,7 @@ Find your developer ID using the Snapcraft CLI:
 ```bash
 $ snapcraft whoami
 ...
-developer-id: SZ4OfFv8DVM9om64iYrgojDLgbzI0eiL
+id: SZ4OfFv8DVM9om64iYrgojDLgbzI0eiL
 ```
 or from the [Snapcraft Dashboard](https://dashboard.snapcraft.io/dev/account/).
 
@@ -108,7 +113,7 @@ Create `model.yaml` with the following content:
 type: model
 series: '16'
 
-# authority-id and brand-id must be set to your developer-id
+# authority-id and brand-id must be set to YOUR developer-id
 authority-id: SZ4OfFv8DVM9om64iYrgojDLgbzI0eiL
 brand-id: SZ4OfFv8DVM9om64iYrgojDLgbzI0eiL
 
@@ -161,7 +166,7 @@ snaps:
   id: AmKuVTOfsN0uEKsyJG34M8CaMfnIqxc0
 ```
 
-3) Sign the model
+3. Sign the model
 
 We sign the model using the `edgex-demo` key created and registered earlier. 
 
@@ -176,7 +181,7 @@ cat model.signed.yaml
 ```
 
 > **Note**  
-> You need to repeat the signing every time you change the input model, because the signature is calculated based on the model.
+> You need to repeat the signing every time you change the input model file, because the signature is calculated based on it.
 
 ### Build the Ubuntu Core image
 We use ubuntu-image and set the following:
@@ -204,6 +209,9 @@ pc.img: DOS/MBR boot sector, extended partition table (last)
 ```
 
 The warning is because we side-loaded the gadget for demonstration purposes. In production settings, a custom gadget would need to be uploaded to the [store](https://ubuntu.com/internet-of-things/appstore) to also receive updates.
+
+> **Note**  
+> You need to repeat the build every time you change and sign the **model** or rebuild the **gadget**.
 
 
 This image file is ready to be flashed on a medium to create a bootable drive!
@@ -244,7 +252,7 @@ Once the initial installation is complete, you will get a prompt for your email 
 > To do a fresh start, your need to rebuild the image.
 
 > **Warning**  
->> Could not set up host forwarding rule 'tcp::8443-:8443'
+>> Error: Could not set up host forwarding rule 'tcp::8443-:8443'
 > 
 > This means that the port is not available on the host. Try removing the service that uses this port or change the host port (left hand side) to another port number, e.g. `tcp::18443-:8443`.
 
