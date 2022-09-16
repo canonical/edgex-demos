@@ -7,8 +7,6 @@ led.direction = digitalio.Direction.OUTPUT
 
 while True:
     led.value = True
-    print("on")
     time.sleep(1.0)
     led.value = False
-    print("off")
     time.sleep(1.0)
