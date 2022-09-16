@@ -44,16 +44,22 @@ Made the following modification in `gadget.yml`:
   # Add default config options
   # The child keys are unique snap IDs
   defaults:
-    AZGf0KNnh8aqdkbGATNuRuxnt1GNRKkV: # edgexfoundry
+    # edgexfoundry
+    AZGf0KNnh8aqdkbGATNuRuxnt1GNRKkV:
       # Disable EdgeX security
       # By default, the security components are enabled and external access is only
       # permitted to authenticated users, through the API Gateway.
-      security: off
+      security-secret-store: "off"
+      # Enable EdgeX 2.2 snap options syntax
+      app-options: true
       # Change the bind address of all EdgeX components to listen on all interfaces.
-      # By default, this is set to 127.0.0.1 (loopback interface), which will prevent # accesping external connections to unprotected endpoints.
+      # By default, this is set to 127.0.0.1 (loopback interface), which make the
+      # internal servers to accept local connections only. This change will open
+      # external access to unprotected endpoints! This is only for demonstration.
       config.service-serverbindaddr: 0.0.0.0
 
-    AmKuVTOfsN0uEKsyJG34M8CaMfnIqxc0: # edgex-device-virtual
+    # edgex-device-virtual
+    AmKuVTOfsN0uEKsyJG34M8CaMfnIqxc0:
       # automatically start the service
       autostart: true
       # Enable app options
@@ -62,6 +68,8 @@ Made the following modification in `gadget.yml`:
       # The same syntax can be used to override most of the server configurations
       apps.device-virtual.config.service-startupmsg: "Startup message from gadget!"
   ```
+
+The gadget source with the above modifications is also available as a submodule in the this repo, under the same directory.
 
 Build, from inside the `pc-amd64-gadget` directory:
 ```bash
