@@ -500,20 +500,13 @@ pc.img (1/1)
   100 %     817.2 MiB / 3,309.0 MiB = 0.247    10 MiB/s       5:30             
 
 $ ls -lh pc.*
--rw-rw-r-- 1 farshid farshid 3.3G Sep 16 17:03 pc.img
--rw-rw-r-- 1 farshid farshid 818M Sep 16 17:03 pc.img.xz
+-rw-rw-r-- 1 ubuntu ubuntu 3.3G Sep 16 17:03 pc.img
+-rw-rw-r-- 1 ubuntu ubuntu 818M Sep 16 17:03 pc.img.xz
 ```
 
-You can use one of following to flash the image:
+For device-specific installation instructions, refer to Ubuntu Core section [here](https://ubuntu.com/download/iot). 
 
-- [Ubuntu Startup Disk Creator](https://ubuntu.com/tutorials/create-a-usb-stick-on-ubuntu)
-- [Raspberry Pi Imager](https://www.raspberrypi.com/software/)
-- [`dd` command](https://ubuntu.com/download/iot/installation-media)
-
-For instructions specific to a device, refer to Ubuntu Core section [here](https://ubuntu.com/download/iot).
-
-For Intel NUC, follow the instructions [here](https://ubuntu.com/download/intel-nuc), replacing Step 2 and 3 with:
-- Copy the Ubuntu Core image (`pc.img.xz`) to the second USB flash drive.
+For Intel NUC, follow the instructions [here](https://ubuntu.com/download/intel-nuc), but use our locally built image instead of downloading the reference Ubuntu Core image. You'll need to copy the image we just compressed (`pc.img.xz`) to the second USB flash drive.
 
 Once the boot is complete, it will prompt for the email address of your [Ubuntu SSO account](https://login.ubuntu.com/) to create a user and deploy your [SSH public keys](https://login.ubuntu.com/ssh-keys). This is done with the help of a program called `console-conf`. Read [here](https://ubuntu.com/core/docs/system-user) to know how this manual step looks like and how it can be automated.
 
