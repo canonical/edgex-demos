@@ -180,7 +180,7 @@ This rule has two important parts:
 - The sql which is to aggregate data using a [window function](https://ekuiper.org/docs/en/latest/sqls/windows.html) to have stable measurements. 
 - The action that defines what values should trigger an actuation event.
 
-The sql can be modified to have other another window function. For example, using `SLIDINGWINDOW(mi, 10)` instead could provide more frequent output because unlike the hopping window, a sliding window produces a new output after every event.
+The sql can be modified to have another window function. For example, using `SLIDINGWINDOW(mi, 10)` instead could provide more frequent output because unlike the hopping window, a sliding window produces a new output after every event.
 
 We could add a memory sink in the actions - as done in steps 2 and 3.
 Then, further rules can consume data from the memory sink and perform more analysis.
