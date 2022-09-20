@@ -64,6 +64,8 @@ Made the following modification in `gadget.yml`:
       autostart: true
       # Enable app options
       app-options: true # not necessary because this service has it by default
+      # Disable EdgeX security
+      config.edgex-security-secret-store: false
       # Override the startup message (because we can)
       # The same syntax can be used to override most of the server configurations
       apps.device-virtual.config.service-startupmsg: "Startup message from gadget!"
