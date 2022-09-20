@@ -495,7 +495,7 @@ Compress an original copy of `pc.img` file to speedup the transfer on disk. If y
 
 ```bash
 # 🖥 Desktop
-$ xz -vk pc.img
+$ xz -vk -0 pc.img
 pc.img (1/1)
   100 %     817.2 MiB / 3,309.0 MiB = 0.247    10 MiB/s       5:30             
 
