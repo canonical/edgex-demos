@@ -61,15 +61,20 @@ Made the following modification in `gadget.yml`:
 
     # edgex-device-virtual
     AmKuVTOfsN0uEKsyJG34M8CaMfnIqxc0:
-      # automatically start the service
+      # Automatically start the service
       autostart: true
-      # Enable app options
-      app-options: true # not necessary because this service has it by default
-      # Disable EdgeX security
+      # Do not use EdgeX Secret Store
       config.edgex-security-secret-store: false
       # Override the startup message (because we can)
       # The same syntax can be used to override most of the server configurations
       apps.device-virtual.config.service-startupmsg: "Startup message from gadget!"
+
+    # edgex-ui
+    9XP2uICRioP5xd6YrpXhP5g4x8XlO5D1:
+      # Automatically start the service
+      autostart: true
+      # Do not use EdgeX Secret Store
+      config.edgex-security-secret-store: false
   ```
 
 The gadget source with the above modifications is also available as a submodule in the this repo, under the same directory.
@@ -178,8 +183,13 @@ snaps:
 
 - name: edgex-device-virtual
   type: app
-  default-channel: latest/edge # device virtual has not been released
+  default-channel: latest/edge # device virtual snap has not been released as stable
   id: AmKuVTOfsN0uEKsyJG34M8CaMfnIqxc0
+
+- name: edgex-ui
+  type: app
+  default-channel: latest/edge/pr-553 # dev release to support insecure mode: https://github.com/edgexfoundry/edgex-ui-go/pull/553
+  id: 9XP2uICRioP5xd6YrpXhP5g4x8XlO5D1
 ```
 
 3. Sign the model
@@ -217,6 +227,7 @@ Fetching core20
 Fetching core22
 Fetching edgexfoundry
 Fetching edgex-device-virtual
+Fetching edgex-ui
 WARNING: "pc" installed from local snaps disconnected from a store cannot be refreshed subsequently!
 Copying "pc-amd64-gadget/pc_20-0.4_amd64.snap" (pc)
 
@@ -255,12 +266,13 @@ sudo qemu-system-x86_64 \
  -machine accel=kvm \
  -serial mon:stdio \
  -net nic,model=virtio \
- -net user,hostfwd=tcp::8022-:22,hostfwd=tcp::59880-:59880
+ -net user,hostfwd=tcp::8022-:22,hostfwd=tcp::59880-:59880,hostfwd=tcp::4000-:4000
 ```
 
 The above command forwards the following ports:
 - SSH port `22` of the emulator to `8022` on host
 - Core Data port `59880` to the same port on host
+- EdgeX UI port `4000` to the same port on host
 
 Once the initial installation is complete, you will get a prompt for your email address to create a new user and deploy your public key for SSH access.
 
@@ -274,7 +286,7 @@ Once the initial installation is complete, you will get a prompt for your email 
 > **Warning**  
 >> `Could not set up host forwarding rule 'tcp::8443-:8443'`
 > 
-> This error means that the port is not available on the host. Try removing the service that uses this port or change the host port (left hand side) to another port number, e.g. `tcp::18443-:8443`.
+> This error means that the port is not available on the host. Try stopping the application that uses this port or change the host port (left hand side) to another port number, e.g. `tcp::4001-:4000`.
 
 > **Warning**  
 > Bad configuration may lead to strange errors during the first boot.
@@ -301,10 +313,11 @@ $ snap list
 Name                  Version          Rev    Tracking       Publisher   Notes
 core20                20220826         1623   latest/stable  canonical✓  base
 core22                20220706         275    latest/stable  canonical✓  base
-edgex-device-virtual  2.3.0-dev.16     226    latest/edge    canonical✓  -
+edgex-device-virtual  2.3.0-dev.16     234    latest/edge    canonical✓  -
+edgex-ui              2.3.0-dev.8      691    latest/edge/…  canonical✓  -
 edgexfoundry          2.2.0+2          3968   latest/stable  canonical✓  -
 pc                    20-0.4           x1     -              -           gadget
-pc-kernel             5.4.0-125.141.1  1090   20/stable      canonical✓  kernel
+pc-kernel             5.4.0-126.142.3  1099   20/stable      canonical✓  kernel
 snapd                 2.57.1           16778  latest/stable  canonical✓  snapd
 ```
 
@@ -314,6 +327,7 @@ Check the status of services:`
 $ snap services
 Service                                    Startup   Current   Notes
 edgex-device-virtual.device-virtual        enabled   active    -
+edgex-ui.edgex-ui                          enabled   active    -
 edgexfoundry.app-service-configurable      disabled  inactive  -
 edgexfoundry.consul                        enabled   active    -
 edgexfoundry.core-command                  enabled   active    -
@@ -360,37 +374,12 @@ Let's install the EdgeX CLI to easily query various APIs:
 # 🚀 Ubuntu Core
 $ snap install edgex-cli
 edgex-cli 2.2.0 from Canonical✓ installed
+
+# Get the usage manual
 $ edgex-cli --help
-EdgeX-CLI
+...
 
-Usage:
-  edgex-cli [command]
-
-Available Commands:
-  command          Read, write and list commands [Core Command]
-  completion       Generate the autocompletion script for the specified shell
-  config           Return the current configuration of all EdgeX core/support microservices
-  device           Add, remove, get, list and modify devices [Core Metadata]
-  deviceprofile    Add, remove, get and list device profiles [Core Metadata]
-  deviceservice    Add, remove, get, list and modify device services [Core Metadata]
-  event            Add, remove and list events
-  help             Help about any command
-  interval         Add, get and list intervals [Support Scheduler]
-  intervalaction   Get, list, update and remove interval actions [Support Scheduler]
-  metrics          Output the CPU/memory usage stats for all EdgeX core/support microservices
-  notification     Add, remove and list notifications [Support Notifications]
-  ping             Ping (health check) all EdgeX core/support microservices
-  provisionwatcher Add, remove, get, list and modify provison watchers [Core Metadata]
-  reading          Count and list readings
-  subscription     Add, remove and list subscriptions [Support Notificationss]
-  transmission     Remove and list transmissions [Support Notifications]
-  version          Output the current version of EdgeX CLI and EdgeX microservices
-
-Flags:
-  -h, --help   help for edgex-cli
-
-Use "edgex-cli [command] --help" for more information about a command.
-
+# For example, ping to check the health status of services
 $ edgex-cli ping
 core-metadata: Fri Sep 16 10:22:44 UTC 2022
 core-data: Fri Sep 16 10:22:44 UTC 2022
@@ -400,7 +389,6 @@ core-command: Fri Sep 16 10:22:44 UTC 2022
 This verified that the core services are alive.
 
 Let's now query the devices:
-
 ```bash
 # 🚀 Ubuntu Core
 $ edgex-cli device list
@@ -445,7 +433,8 @@ $ snap logs -f edgex-device-virtual
 
 
 Congratulations! You now have a running EdgeX platform with dummy devices, producing synthetic readings. We can access this data on the localhost. We can also access the data from other machines because we configured the servers to bind to all interfaces.
-In production setting, you would keep the bind address to the loopback interface and instead allow authenticated access to endpoints via the API Gateway. For instructions to do so, refer to the EdgeX example on [**PR:** Creating an EdgeX OS Image](https://github.com/edgexfoundry/edgex-docs/pull/836).
+
+In production setting, you would keep the bind address to the loopback interface and only allow authenticated access to endpoints via the API Gateway. For instructions on creating an image with access control in place, refer to the EdgeX example on [**PR:** Creating an EdgeX OS Image](https://github.com/edgexfoundry/edgex-docs/pull/836).
 
 Let's exit the SSH session:
 ```bash
@@ -466,7 +455,8 @@ The above is the Core Data endpoint for querying all readings.
 Refer to [API Reference](https://docs.edgexfoundry.org/2.3/api/Ch-APIIntroduction/) for other endpoints and documentation.
 Keep in mind that for the emulation, the command only exposes the Core Data port `59880`. If desired, other ports can be exposed.
 
-```json title="Response"
+Response:
+```json
 {
   "apiVersion": "v2",
   "statusCode": 200,
@@ -493,6 +483,12 @@ Keep in mind that for the emulation, the command only exposes the Core Data port
   ]
 }
 ```
+
+Now, use a web browser and access the EdgeX UI at http://localhost:4000  
+As before, replace `localhost` with the device IP address when querying from an another device.
+
+![EdgeX UI Device List](./figures/edgex-ui-device-list.png)
+![EdgeX UI Readings](./figures/edgex-ui-readings.png)
 
 #### Flash the image on disk
 Compress an original copy of `pc.img` file to speedup the transfer on disk. If you have used this to install in QEMU, you need to rebuild a new copy.

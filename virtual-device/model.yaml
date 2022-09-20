@@ -50,5 +50,10 @@ snaps:
 
 - name: edgex-device-virtual
   type: app
-  default-channel: latest/edge # device virtual has not been released
+  default-channel: latest/edge # device virtual snap has not been released as stable
   id: AmKuVTOfsN0uEKsyJG34M8CaMfnIqxc0
+
+- name: edgex-ui
+  type: app
+  default-channel: latest/edge/pr-553 # dev release to support insecure mode: https://github.com/edgexfoundry/edgex-ui-go/pull/553
+  id: 9XP2uICRioP5xd6YrpXhP5g4x8XlO5D1
