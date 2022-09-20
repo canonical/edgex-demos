@@ -39,8 +39,7 @@ cd pc-amd64-gadget
 
 Made the following modification in `gadget.yml`:
 1. Under `volumes.pc.structure`, find the item with name `ubuntu-seed` and increase its size to `1500M`. This is to make sure our added snaps fit in the partition.
-2. [Optional: if planning to use an emulator] Under `volumes.pc.structure`: find the item with name `ubuntu-data` and increase its size to `2G`. This is to give sufficient writable storage to upgrade snaps or install additional ones. When installing on actual hardware, this partition extends automatically to take the whole remaining space.
-3. Add the following at the top level:
+2. Add the following at the top level:
   ```yml
   # Add default config options
   # The child keys are unique snap IDs
@@ -218,6 +217,11 @@ We use ubuntu-image and set the following:
 
 This will download all the needed snaps and build a file called `pc.img`.
 Note that even the kernel and OS base (core20) are snap packages!
+
+> **Note**
+> If you plan to use an emulator to install and run Ubuntu Core from the resulting image, it is a good idea to allocate additional writable storage. The default size of the `ubuntu-data` partition is `1G` as defined in the gadget snap. When installing on actual hardware, this partition extends automatically to take the whole remaining space. However, when using QEMU, the partition will have the exact same size because the image size is calculated based on the defined partition structure. The 1GiB partition will be 90% full after first boot.
+>
+> You can configure the image to be larger so that the installer expands the partition automatically. This is only needed if you want to install additional snaps or upgrade existing ones on the emulator. To extend the image size, use the `--image-size=5G` flag in the following command which will increase the image size to 5GB, giving you more than 1.5GB of free writable space.
 
 ```bash
 $ ubuntu-image snap model.signed.yaml --validation=enforce --snap pc-amd64-gadget/pc_20-0.4_amd64.snap 
