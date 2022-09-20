@@ -17,14 +17,15 @@ We will use the following tools:
 Install the following:
 ```bash
 # 🖥 Desktop
-sudo snap install snapcraft yq
+sudo snap install snapcraft --classic
+sudo snap install yq
 sudo snap install ubuntu-image --classic
 ```
 
 ## Prepare the Gadget snap
 
 The gadget is available as a prebuilt snap in the store, however, we need to build our own to:
-- Extend the size of disk volumes to have sufficient capacity for our EdgeX snaps.
+- Extend the size of disk partitions to have sufficient capacity for our EdgeX snaps
 - Add default configuration for the EdgeX snaps
 
 To build a Core20 AMD64 gadget, we use the source from [branch `20` of pc-amd64-gadget](https://github.com/snapcore/pc-amd64-gadget/tree/20).
@@ -37,8 +38,8 @@ cd pc-amd64-gadget
 ```
 
 Made the following modification in `gadget.yml`:
-1. Under `volumes.pc.structure`, find the item with name `ubuntu-seed` and increase its size to `1500M`. This is to make sure our snap will fit in the image.
-2. Under `volumes.pc.structure` and only if planning to use an emulator: find the item with name `ubuntu-data` and increase its size to `2G`. This is to give sufficient writable storage. When flashing on actual hardware, this volume would automatically take the whole remaining space (NEED TO VERIFY).
+1. Under `volumes.pc.structure`, find the item with name `ubuntu-seed` and increase its size to `1500M`. This is to make sure our added snaps fit in the partition.
+2. [Optional: if planning to use an emulator] Under `volumes.pc.structure`: find the item with name `ubuntu-data` and increase its size to `2G`. This is to give sufficient writable storage to upgrade snaps or install additional ones. When installing on actual hardware, this partition extends automatically to take the whole remaining space.
 3. Add the following at the top level:
   ```yml
   # Add default config options
@@ -305,11 +306,12 @@ edgexfoundry          2.2.0+2          3968   latest/stable  canonical✓  -
 pc                    20-0.4           x1     -              -           gadget
 pc-kernel             5.4.0-125.141.1  1090   20/stable      canonical✓  kernel
 snapd                 2.57.1           16778  latest/stable  canonical✓  snapd
-``
+```
 
 Check the status of services:`
 ```bash
 # 🚀 Ubuntu Core
+$ snap services
 Service                                    Startup   Current   Notes
 edgex-device-virtual.device-virtual        enabled   active    -
 edgexfoundry.app-service-configurable      disabled  inactive  -
