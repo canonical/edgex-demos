@@ -218,10 +218,12 @@ We use ubuntu-image and set the following:
 This will download all the needed snaps and build a file called `pc.img`.
 Note that even the kernel and OS base (core20) are snap packages!
 
-> **Note**
-> If you plan to use an emulator to install and run Ubuntu Core from the resulting image, it is a good idea to allocate additional writable storage. The default size of the `ubuntu-data` partition is `1G` as defined in the gadget snap. When installing on actual hardware, this partition extends automatically to take the whole remaining space. However, when using QEMU, the partition will have the exact same size because the image size is calculated based on the defined partition structure. The 1GiB partition will be 90% full after first boot.
+> **Note**  
+> If you plan to use an emulator to install and run Ubuntu Core from the resulting image, it is a good idea to allocate additional writable storage. This necessary if you want to install additional snaps interactively or upgrade existing ones on the emulator.
 >
-> You can configure the image to be larger so that the installer expands the partition automatically. This is only needed if you want to install additional snaps or upgrade existing ones on the emulator. To extend the image size, use the `--image-size=5G` flag in the following command which will increase the image size to 5GB, giving you more than 1.5GB of free writable space.
+> The default size of the `ubuntu-data` partition is `1G` as defined in the gadget snap. When installing on actual hardware, this partition extends automatically to take the whole remaining space on the disk volume. However, when using QEMU, the partition will have the exact same size because the image size is calculated based on the defined partition structure. The 1GB `ubuntu-data` partition will be 90% full after first boot. You can configure the image to be larger so that the installer expands the partition automatically as with a large disk volume. 
+>
+> To extend the image size, use the `--image-size` flag in the following command. For example, to add 500MB extra (the original image is around 3.5GB), set `--image-size=4G`.
 
 ```bash
 $ ubuntu-image snap model.signed.yaml --validation=enforce --snap pc-amd64-gadget/pc_20-0.4_amd64.snap 
