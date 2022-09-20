@@ -5,6 +5,7 @@ secrets-token.json
 
 # image files
 *.img
+*.img.xz
 seed.manifest
 
 
