@@ -43,6 +43,8 @@ To build a Core20 AMD64 gadget, we use the source from [branch `20` of pc-amd64-
 Clone the branch of the repository and enter the newly created directory:
 ```bash
 # 🖥 Desktop
+sudo apt update
+sudo apt install git -y
 git clone https://github.com/snapcore/pc-amd64-gadget.git --branch=20
 cd pc-amd64-gadget
 ```
@@ -151,7 +153,7 @@ model: ubuntu-core-20-amd64
 architecture: amd64
 
 # timestamp should be within your signature's validity period
-timestamp: '2022-06-21T10:45:00+00:00'
+timestamp: '2022-12-31T10:45:00+00:00'
 base: core20
 
 grade: dangerous
@@ -273,11 +275,14 @@ We use a `amd64` QEMU emulator. You may refer to [Testing Ubuntu Core with QEMU]
 Run the following command and wait for the boot to complete:
 ```bash
 # 🖥 Desktop
+sudo apt install qemu-kvm ovmf -y
+kwm-ok
+snap install --edge test-snapd-swtpm
 sudo qemu-system-x86_64 \
  -smp 4 \
  -m 4096 \
  -drive file=/usr/share/OVMF/OVMF_CODE.fd,if=pflash,format=raw,unit=0,readonly=on \
- -drive file=pc.img,cache=none,format=raw,id=disk1,if=none \
+ -drive file=pc.img,format=raw,id=disk1,if=none \
  -device virtio-blk-pci,drive=disk1,bootindex=1 \
  -machine accel=kvm \
  -serial mon:stdio \
@@ -463,6 +468,7 @@ Connection to localhost closed.
 ... and query data from outside:
 ```bash
 # 🖥 Desktop
+snap install curl jq
 curl --silent --show-err http://localhost:59880/api/v2/reading/all?limit=2 | jq
 ```
 Replace `localhost` with the device IP address when querying from an actual device, rather than the local emulator.
