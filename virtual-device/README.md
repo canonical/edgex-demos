@@ -272,7 +272,7 @@ We use a `amd64` QEMU emulator. You may refer to [Testing Ubuntu Core with QEMU]
 ```
 # 🖥 Desktop
 sudo apt install qemu-kvm ovmf -y
-kwm-ok
+kvm-ok
 snap install --edge test-snapd-swtpm
 ```
 
