@@ -22,6 +22,16 @@ sudo snap install yq
 sudo snap install ubuntu-image --classic
 ```
 
+## Setup your account
+An Ubuntu account is needed to store your SSH public key. 
+The SSH public key is needed later on during the installation of Ubuntu Core because we will use the default approach, using `console-conf`, to interactively setup the system. As part of this setup, the public key is downloaded on the device to allow SSH connection using your private key.
+
+Perform the following:
+1. Create an [Ubuntu SSO account](https://login.ubuntu.com/).
+2. Import your SSH public Key into your [Ubuntu SSO account](https://login.ubuntu.com/ssh-keys). For instructions on creating SSH keys, refer [here](https://help.ubuntu.com/community/SSH/OpenSSH/Keys#Generating_RSA_Keys).
+
+In production settings, the need for an account can be avoided by defining a [system-user](https://ubuntu.com/core/docs/system-user).
+
 ## Prepare the Gadget snap
 
 The gadget is available as a prebuilt snap in the store, however, we need to build our own to:
