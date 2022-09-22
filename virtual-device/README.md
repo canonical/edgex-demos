@@ -268,14 +268,17 @@ However, during development it is best to boot in an emulator to quickly detect 
 #### Run in an emulator
 Running the image in an emulator makes it easier to quickly try the image and find out possible issues.
 
-We use a `amd64` QEMU emulator. You may refer to [Testing Ubuntu Core with QEMU](https://ubuntu.com/core/docs/testing-with-qemu) and [Image building](https://ubuntu.com/core/docs/image-building#heading--testing) for more information.
-
-Run the following command and wait for the boot to complete:
-```bash
+We use a `amd64` QEMU emulator. You may refer to [Testing Ubuntu Core with QEMU](https://ubuntu.com/core/docs/testing-with-qemu) and [Image building](https://ubuntu.com/core/docs/image-building#heading--testing) for more information. In most cases, the following should be sufficient to setup the environment:
+```
 # 🖥 Desktop
 sudo apt install qemu-kvm ovmf -y
 kwm-ok
 snap install --edge test-snapd-swtpm
+```
+
+Run the following command and wait for the boot to complete:
+```bash
+# 🖥 Desktop
 sudo qemu-system-x86_64 \
  -smp 4 \
  -m 4096 \
