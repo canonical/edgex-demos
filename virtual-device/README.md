@@ -24,11 +24,9 @@ sudo snap install ubuntu-image --classic
 
 ## Setup your account
 An Ubuntu account is needed to store your SSH public key. 
-The SSH public key is needed later on during the installation of Ubuntu Core because we will use the default approach, using `console-conf`, to interactively setup the system. As part of this setup, the public key is downloaded on the device to allow SSH connection using your private key.
 
-Perform the following:
-1. Create an [Ubuntu SSO account](https://login.ubuntu.com/).
-2. Import your SSH public Key into your [Ubuntu SSO account](https://login.ubuntu.com/ssh-keys). For instructions on creating SSH keys, refer [here](https://help.ubuntu.com/community/SSH/OpenSSH/Keys#Generating_RSA_Keys).
+Follow the instructions [here](https://snapcraft.io/docs/creating-your-developer-account) setup the account, create an SSH keypair (if you don't already one), and add your public key to your account.
+The SSH public key is needed later on during the installation of Ubuntu Core because we will use the default approach, using `console-conf`, to interactively setup the system. As part of this setup, the public key is downloaded on the device to allow SSH connection using your private key.
 
 In production settings, the need for an account can be avoided by defining a [system-user](https://ubuntu.com/core/docs/system-user).
 
