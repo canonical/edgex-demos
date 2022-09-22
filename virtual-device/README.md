@@ -81,7 +81,7 @@ The gadget source with the above modifications is also available as a submodule 
 Build, from inside the `pc-amd64-gadget` directory:
 ```bash
 # 🖥 Desktop: pc-amd64-gadget
-$ snapcraft
+$ snapcraft --use-lxd
 ...
 Snapped pc_20-0.4_amd64.snap
 ```
