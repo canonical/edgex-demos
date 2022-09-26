@@ -5,6 +5,7 @@
 [submodule "climate-control/edgex-device-ft232h-bme680"]
 	path = climate-control/edgex-device-ft232h-bme680
 	url = https://github.com/farshidtz/edgex-device-ft232h-bme680.git
+	branch = edgex-demo-climate-control
 [submodule "virtual-device/pc-amd64-gadget"]
 	path = virtual-device/pc-amd64-gadget
 	url = https://github.com/farshidtz/snapcore-pc-amd64-gadget.git
