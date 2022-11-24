@@ -59,7 +59,12 @@ Once you are ready with the changes, start and enable the service:
 sudo snap start --enable edgex-device-usb-camera
 ```
 
-Once you start successfully, some of the configurations gets uploaded to the EdgeX Registry and Core Metadata and the local files will no longer be used.
+If the service starts successfully, some of the configurations gets uploaded to the EdgeX Registry and Core Metadata and the local files will no longer be used.
+
+> 🛑 Check the service logs:
+> ```bash
+> sudo snap logs -f edgex-device-usb-camera
+> ```
 
 > ℹ To change the device/profile after service has started, update the local files, delete from core-metadata, and restart:
 > 
@@ -95,11 +100,10 @@ Please have a look at [edgex-device-usb-camera](https://github.com/edgexfoundry/
 > ```bash
 > curl -X PUT -d '{"StopStreaming": true }' http://localhost:59882/api/v2/device/name/example-camera/StopStreaming
 > ```
-> Note that stopping the stream will cause openvino's container to exit! The container will automatically restart if there is a restart policy, but that may take up to a minute.
- 
-The Device USB Camera service 
+> Note that stopping the stream will cause openvino's container to exit! The container will automatically restart if there is a restart policy, but that may take up to a minute. More on the openvino container later.
 
 > 🛑 Use a video player to check the video stream:
+> 
 > MPlayer:
 > ```bash
 > mplayer rtsp://localhost:8554/stream/example-camera
@@ -110,7 +114,7 @@ The Device USB Camera service
 > vlc rtsp://localhost:8554/stream/example-camera
 > ```
 
-> ℹ To turn on device-usb-camera's auto streaming:
+> ℹ To turn on device-usb-camera's auto streaming, so that you don't have to start manually:
 > ```bash
 > sudo snap set edgex-device-usb-camera app-options=true
 > sudo snap set edgex-device-usb-camera config.devicelist-protocols-usb-autostreaming=true
@@ -123,13 +127,13 @@ Install the mosquitto broker, or any other MQTT broker. We use port 1883 for MQT
 sudo snap install mosquitto
 ```
 
-The broker starts automatically, but just in case you have disabled it:
+The broker starts automatically, but just in case you have it disabled:
 ```bash
 sudo snap start --enable mosquitto
 ```
 
 ### 4. (OpenVINO) Setup OpenVINO
-edgex-openvino-object-detection docker image we used in this demo consists of four main components:
+The docker image we use in this demo consists of four main components:
 - [OpenVINO™ toolkit Model Downloader](https://docs.openvino.ai/latest/omz_tools_downloader.html)
 - [OpenVINO™ toolkit Model Optimizer](https://docs.openvino.ai/latest/openvino_docs_MO_DG_Deep_Learning_Model_Optimizer_DevGuide.html)
 - [Intel® Deep Learning Streamer](https://dlstreamer.github.io/)
@@ -145,10 +149,7 @@ docker build . --tag edgex-openvino-object-detection
 You can upload this image to a docker registry and use it on other machines. Refer to [License](#license) before re-distributing the image.
 
 #### Run the container
-Install the [docker snap](https://snapcraft.io/docker), if you don't already have the Docker engine installed:
-```bash
-sudo snap install docker
-```
+Install the Docker Engine if you don't already have it installed. We recommend using the[docker snap](https://snapcraft.io/docker).
 
 Run the object detection container:
 
