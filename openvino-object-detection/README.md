@@ -10,38 +10,75 @@ Object Detection with EdgeX and OpenVINO.
 ```bash
 sudo snap install edgexfoundry --channel=latest/stable
 ```
-
-> **[tip]**  
-> [Extend the default secret store tokens TTL](https://docs.edgexfoundry.org/2.2/getting-started/Ch-GettingStartedSnapUsers/#secret-store-token) from 1h to 72h to avoid running into expired tokens while preparing the demo.
+ 
+> ℹ [Extend the default secret store tokens TTL](https://docs.edgexfoundry.org/2.2/getting-started/Ch-GettingStartedSnapUsers/#secret-store-token) from 1h to 72h to avoid running into expired tokens while preparing the demo.
 > Note that tokens will expire if some components are stopped for a period longer than the validity. The restart command in the given instructions can be used to issue a fresh set of tokens.
 
 ### 2. (EdgeX) Setup Device USB Camera
 #### Install
 ```bash
-sudo snap install edgex-device-usb-camera --channel=latest/edge
+sudo snap install edgex-device-usb-camera --channel=latest/beta
 ```
 
-#### Connect interfaces
-Connect edgex-device-usb-camera’s camera interface:
-```bash
-sudo snap connect edgex-device-usb-camera:camera :camera
-```
+The [camera interface](https://snapcraft.io/docs/camera-interface) gets connected automatically.
 
 #### Configure and start
+Copy the example device configuration:
 ```bash
-sudo mv /var/snap/edgex-device-usb-camera/current/config/device-usb-camera/res/devices/general.usb.camera.toml.example \
+sudo cp /var/snap/edgex-device-usb-camera/current/config/device-usb-camera/res/devices/general.usb.camera.toml.example \
 /var/snap/edgex-device-usb-camera/current/config/device-usb-camera/res/devices/general.usb.camera.toml
 ```
 
-> **[tip]**  
-> Set the right video device (default is /dev/video0);
-> We assume that the device name stays as default "example-camera" in the rest of this document:
+Edit:
+```bash
+sudo nano /var/snap/edgex-device-usb-camera/current/config/device-usb-camera/res/devices/general.usb.camera.toml
+```
+
+- Change the path to the device if it isn't the default: `/dev/video0`.
+- Do not change the name. We assume that the device name stays as default "example-camera" in the rest of this document.
+
+Update other configuration, if necessary:
+```
+/var/snap/edgex-device-usb-camera/current/config/
+├── device-usb-camera
+│   └── res
+│       ├── configuration.toml
+│       ├── devices
+│       │   ├── general.usb.camera.toml
+│       │   └── general.usb.camera.toml.example
+│       └── profiles
+│           └── general.usb.camera.yaml
+└── rtsp-simple-server
+    └── config.yml
+```
+
+Note that by default, the service is set to stream the video feed to an internal RTSP server. The internal server binds to the loopback interface by default and is not accessible from outside.
+
+Once you are ready with the changes, start and enable the service:
+```bash
+sudo snap start --enable edgex-device-usb-camera
+```
+
+If the service starts successfully, some of the configurations gets uploaded to the EdgeX Registry and Core Metadata and the local files will no longer be used.
+
+> 🛑 Check the service logs:
 > ```bash
-> sudo nano /var/snap/edgex-device-usb-camera/current/config/device-usb-> camera/res/devices/general.usb.camera.toml
+> sudo snap logs -f edgex-device-usb-camera
 > ```
+
+> ℹ To change the device/profile after service has started, update the local files, delete from core-metadata, and restart:
+> 
 > ```bash
-> sudo snap start --enable edgex-device-usb-camera
+> # Delete device:
+> curl -X DELETE http://localhost:59881/api/v2/device/name/example-camera
+> 
+> # Delete profile, if modified:
+> curl -X DELETE http://localhost:59881/api/v2/deviceprofile/name/USB-Camera-General
+> 
+> # Restart:
+> sudo snap restart edgex-device-usb-camera
 > ```
+> Query the above URLs to make sure the changes have been reflected.
 
 #### Start the stream
 ```bash
@@ -59,46 +96,25 @@ curl -X PUT -d '{
 
 Please have a look at [edgex-device-usb-camera](https://github.com/edgexfoundry/device-usb-camera#advanced-topics) for more video options.
 
-> **[tip]**  
-> The usb camera could be stopped by:
+> ℹ The usb camera could be stopped by:
 > ```bash
-> curl -X PUT -d '{"StopStreaming": true
-> }' http://localhost:59882/api/v2/device/name/example-camera/StopStreaming
+> curl -X PUT -d '{"StopStreaming": true }' http://localhost:59882/api/v2/device/name/example-camera/StopStreaming
 > ```
-> Note that stopping the stream will cause openvino's container to exit! The container will automatically restart if there is a restart policy, but that may take up to a minute.
+> Note that stopping the stream will cause openvino's container to exit! The container will automatically restart if there is a restart policy, but that may take up to a minute. More on the openvino container later.
 
-> **[debug]**  
-> Check the video stream:
-> Test URI with VLC. You would see a video window:
-> If you don’t already have it:
-> ```bash
-> sudo snap install vlc
-> vlc rtsp://localhost:8554/stream/example-camera
-> ```
->
-> If that didn’t work, use mplayer:
+> 🛑 Use a video player to check the video stream:
+> 
+> MPlayer:
 > ```bash
 > mplayer rtsp://localhost:8554/stream/example-camera
 > ```
-
-> **[tip]**  
-> Need to change the device/device profile after service has started? Update the local files, delete from core-metadata, and restart:
-> 
+>
+> VLC:
 > ```bash
-> # Delete device:
-> curl -X DELETE http://localhost:59881/api/v2/device/name/example-camera
-> 
-> # Delete profile, if modified:
-> curl -X DELETE http://localhost:59881/api/v2/deviceprofile/name/USB-Camera-General
-> 
-> # Restart:
-> sudo snap restart edgex-device-usb-camera
+> vlc rtsp://localhost:8554/stream/example-camera
 > ```
-> Query the above URLs to make sure the changes have been reflected.
 
-
-> **[tip]**  
-> Turn on device-usb-camera’s auto streaming:
+> ℹ To turn on device-usb-camera's auto streaming, so that you don't have to start manually:
 > ```bash
 > sudo snap set edgex-device-usb-camera app-options=true
 > sudo snap set edgex-device-usb-camera config.devicelist-protocols-usb-autostreaming=true
@@ -111,13 +127,13 @@ Install the mosquitto broker, or any other MQTT broker. We use port 1883 for MQT
 sudo snap install mosquitto
 ```
 
-The broker is started automatically, but just in case you have disabled it:
+The broker starts automatically, but just in case you have it disabled:
 ```bash
 sudo snap start --enable mosquitto
 ```
 
 ### 4. (OpenVINO) Setup OpenVINO
-edgex-openvino-object-detection docker image we used in this demo consists of four main components:
+The docker image we use in this demo consists of four main components:
 - [OpenVINO™ toolkit Model Downloader](https://docs.openvino.ai/latest/omz_tools_downloader.html)
 - [OpenVINO™ toolkit Model Optimizer](https://docs.openvino.ai/latest/openvino_docs_MO_DG_Deep_Learning_Model_Optimizer_DevGuide.html)
 - [Intel® Deep Learning Streamer](https://dlstreamer.github.io/)
@@ -133,10 +149,7 @@ docker build . --tag edgex-openvino-object-detection
 You can upload this image to a docker registry and use it on other machines. Refer to [License](#license) before re-distributing the image.
 
 #### Run the container
-Install docker, if you don’t already have it:
-```bash
-sudo snap install docker
-```
+Install the Docker Engine if you don't already have it installed. We recommend using the[docker snap](https://snapcraft.io/docker).
 
 Run the object detection container:
 
@@ -158,20 +171,57 @@ To stop when detached:
 docker stop openvino
 ```
 
-> **[debug]**  
-> Subscribe to the broker and see the predictions:
+> 🛑 Subscribe to the broker and see the predictions:
 > ```bash
 > mosquitto_sub -t "openvino/MQTT-test-device/prediction"
 > ```
+> Example formatted output:
 > ```json
-> {"objects":[{"detection":{"bounding_box":{"x_max":1.0,"x_min":0.1194220781326294,"y_max":0.9418730139732361,"y_min":0.06846112012863159},"confidence":0.6409656405448914,"label":"dog","label_id":11},"h":210,"roi_type":"dog","w":282,"x":38,"y":16}],"resolution":{"height":240,"width":320},"timestamp":9031881447638}
-> ...
-> ```
-
-> **[debug]**  
-> Query core-data to check if raw predictions are being added via Device MQTT:
-> ```bash
-> curl http://localhost:59880/api/v2/reading/device/name/MQTT-test-device
+> {
+>   "objects": [
+>     {
+>       "detection": {
+>         "bounding_box": {
+>           "x_max": 0.9333822131156921,
+>           "x_min": 0.3626158833503723,
+>           "y_max": 1,
+>           "y_min": 0.22483402490615845
+>         },
+>         "confidence": 0.90755695104599,
+>         "label": "person",
+>         "label_id": 14
+>       },
+>       "h": 186,
+>       "roi_type": "person",
+>       "w": 183,
+>       "x": 116,
+>       "y": 54
+>     },
+>     {
+>       "detection": {
+>         "bounding_box": {
+>           "x_max": 0.5322275459766388,
+>           "x_min": 0.036655932664871216,
+>           "y_max": 0.9815177321434021,
+>           "y_min": 0.22375863790512085
+>         },
+>         "confidence": 0.6280328035354614,
+>         "label": "cat",
+>         "label_id": 7
+>       },
+>       "h": 182,
+>       "roi_type": "cat",
+>       "w": 159,
+>       "x": 12,
+>       "y": 54
+>     }
+>   ],
+>   "resolution": {
+>     "height": 240,
+>     "width": 320
+>   },
+>   "timestamp": 13801900757
+> }
 > ```
 
 ### 5. (EdgeX) Setup Device MQTT
@@ -195,20 +245,14 @@ sudo nano /var/snap/edgex-device-mqtt/current/config/device-mqtt/res/profiles/mq
 ```
 ```yaml
 name: "Test-Device-MQTT-Profile"
-manufacturer: "Canonical"
-model: "MQTT-2"
-labels:
-- "openvino"
-description: "device mqtt profile for openvino prediction"
+description: "device mqtt profile for openvino predictions"
 deviceResources:
--
-name: prediction
-isHidden: false
-description: "prediction in JSON"
-properties:
-valueType: "Object"
-readWrite: "R"
-mediaType: "application/json"
+- name: prediction
+  description: "prediction payload in JSON"
+  properties:
+    valueType: "Object"
+    readWrite: "R"
+    mediaType: "application/json"
 ```
 
 #### Start
@@ -216,26 +260,23 @@ mediaType: "application/json"
 sudo snap start --enable edgex-device-mqtt
 ```
 
-> **[debug]**  
-> Verify that the right profile has been uploaded:
+> 🛑 Verify that the right profile has been uploaded:
 > ```bash
 > curl http://localhost:59881/api/v2/deviceprofile/name/Test-Device-MQTT-Profile
 > ```
 
-> **[debug]**  
-> Check the logs to see if there are errors:
+> 🛑 Check the logs to see if there are errors:
 > ```bash
 > sudo snap logs -f edgex-device-mqtt
 > ```
-> 
-> To see if all messages pass through, enable the debugging first:
+
+> 🛑 To see if all messages pass through, enable the debugging and restart:
 > ```bash
 > sudo snap set edgex-device-mqtt config.writable-loglevel=DEBUG
 > sudo snap restart edgex-device-mqtt
 > ```
 
-> **[tip]**  
-> Need to change the device/device profile after service has started? Update the local files, delete from core-metadata, and restart:
+> ℹ To change the device/profile after service has successfully started, update the local files, delete them from EdgeX Core Metadata, and restart:
 > 
 > Delete the device:
 > ```bash
@@ -252,30 +293,24 @@ sudo snap start --enable edgex-device-mqtt
 > sudo snap restart edgex-device-mqtt
 > ```
 > 
-> Query the above URLs to make sure the changes have been reflected.
+> Make GET request to the above URLs to make sure the changes have been reflected.
+
+> 🛑 Query core-data to check if raw predictions are being added via Device MQTT:
+> ```bash
+> curl http://localhost:59880/api/v2/reading/device/name/MQTT-test-device
+> ```
 
 ### 6. (EdgeX) Setup eKuiper
-eKuiper filters prediction results and sends them back to edgex message bus.
+eKuiper filters the prediction results and sends them back to EdgeX Message Bus.
 
-#### Install
+Install:
 ```bash
 sudo snap install edgex-ekuiper
 ```
 
-#### Configure
-
-Edit the edgex source file:
+Start and enable:
 ```bash
-sudo nano /var/snap/edgex-ekuiper/current/etc/sources/edgex.yaml
-```
-
-In the default section, change as below:
-* Change `topic: rules-events` to `topic: edgex/events/#`
-* Add `messageType: request`
-
-Restart:
-```bash
-sudo snap restart edgex-ekuiper
+sudo snap start --enable edgex-ekuiper
 ```
 
 Create a stream:
@@ -283,18 +318,18 @@ Create a stream:
 edgex-ekuiper.kuiper-cli create stream deviceMqttStream '() WITH (FORMAT="JSON",TYPE="edgex")'
 ```
 
-Create a rule:
+Create a rule that captures "person" predictions:
 ```
 edgex-ekuiper.kuiper-cli create rule filterPeople '
 {
   "sql":"SELECT regexp_matches(prediction, \"person\") AS person FROM deviceMqttStream WHERE meta(deviceName)=\"MQTT-test-device\"",
- "actions": [
-     {
-       "log":{}
-     },
+  "actions": [
+    {
+      "log":{}
+    },
     {
       "edgex": {
-       "connectionSelector": "edgex.redisMsgBus",
+        "connectionSelector": "edgex.redisMsgBus",
         "topicPrefix": "edgex/events/device",
         "messageType": "request",
         "deviceName": "people",
@@ -304,9 +339,9 @@ edgex-ekuiper.kuiper-cli create rule filterPeople '
   ]
 }'
 ```
+This rule can be extended to take into account the confidence for this prediction.
 
-> **[debug]**  
-> Query results from EdgeX Core Data:
+> 🛑 Query results from EdgeX Core Data:
 > ```bash
 > curl http://localhost:59880/api/v2/reading/device/name/people
 > ```
@@ -337,16 +372,14 @@ Save and test. You should see Not Found as follows, meaning that the server was 
 #### Create a dashboard
 To do so, go follow: + -> Create / Dashboard
 
-> **[tip]**  
-> The remaining configurations are available as a Grafana dashboard export:
+> ℹ The remaining configurations are available as a Grafana dashboard export:
 > 1. Go to dashboard settings -> JSON Model -> add the content of [grafana-dashboard.json](grafana-dashboard.json)
 > 2. Skip all the next Grafana-related configuration steps.
 
 Set the query range to 5min and refresh rate to `5s`
 ![grafana-dashboard-refresh-rate](figures/grafana-dashboard-refresh-rate.png)
 
-> **[tip]**  
-> The range can be shorted by manually entering the from value such as: now-1m
+> ℹ The range can be shorted by manually entering the from value such as: now-1m
 
 #### Setup the panel
 a. Add an empty panel
@@ -439,7 +472,7 @@ curl -X 'POST' \
   
 The customized actions will occur on customized intervals (every 10 minutes) to scrub old events which stayed in core-data for more than 20 minutes (1200000000000 nanoseconds).
 
-> **[tip]** Make sure the interval and action have been added successfully:
+> ℹ Make sure the interval and action have been added successfully:
 > ```bash
 > curl http://localhost:59861/api/v2/interval/name/10minutes
 > curl http://localhost:59861/api/v2/intervalaction/name/scrub-aged-events-20m
