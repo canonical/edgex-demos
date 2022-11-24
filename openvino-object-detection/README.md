@@ -17,18 +17,15 @@ sudo snap install edgexfoundry --channel=latest/stable
 ### 2. (EdgeX) Setup Device USB Camera
 #### Install
 ```bash
-sudo snap install edgex-device-usb-camera --channel=latest/edge
+sudo snap install edgex-device-usb-camera --channel=latest/beta
 ```
 
-#### Connect interfaces
-Connect edgex-device-usb-camera’s camera interface:
-```bash
-sudo snap connect edgex-device-usb-camera:camera :camera
-```
+The [camera interface](https://snapcraft.io/docs/camera-interface) gets connected automatically.
 
 #### Configure and start
+Copy the example device configuration:
 ```bash
-sudo mv /var/snap/edgex-device-usb-camera/current/config/device-usb-camera/res/devices/general.usb.camera.toml.example \
+sudo cp /var/snap/edgex-device-usb-camera/current/config/device-usb-camera/res/devices/general.usb.camera.toml.example \
 /var/snap/edgex-device-usb-camera/current/config/device-usb-camera/res/devices/general.usb.camera.toml
 ```
 
@@ -39,6 +36,31 @@ sudo nano /var/snap/edgex-device-usb-camera/current/config/device-usb-camera/res
 
 - Change the path to the device if it isn't the default: `/dev/video0`.
 - Do not change the name. We assume that the device name stays as default "example-camera" in the rest of this document.
+
+Update other configuration, if necessary:
+```
+/var/snap/edgex-device-usb-camera/current/config/
+├── device-usb-camera
+│   └── res
+│       ├── configuration.toml
+│       ├── devices
+│       │   ├── general.usb.camera.toml
+│       │   └── general.usb.camera.toml.example
+│       └── profiles
+│           └── general.usb.camera.yaml
+└── rtsp-simple-server
+    └── config.yml
+```
+
+Note that by default, the service is set to stream the video feed to an internal RTSP server. The internal server binds to the loopback interface by default and is not accessible from outside.
+
+Once you are ready with the changes, start and enable the service:
+```bash
+sudo snap start --enable edgex-device-usb-camera
+```
+
+Once you start successfully, some of the configurations gets uploaded to the EdgeX Registry and Core Metadata and the local files will no longer be used.
+
 > ℹ To change the device/profile after service has started, update the local files, delete from core-metadata, and restart:
 > 
 > ```bash
@@ -82,7 +104,7 @@ The Device USB Camera service
 > ```bash
 > mplayer rtsp://localhost:8554/stream/example-camera
 > ```
-> 
+>
 > VLC:
 > ```bash
 > vlc rtsp://localhost:8554/stream/example-camera
@@ -222,20 +244,14 @@ sudo nano /var/snap/edgex-device-mqtt/current/config/device-mqtt/res/profiles/mq
 ```
 ```yaml
 name: "Test-Device-MQTT-Profile"
-manufacturer: "Canonical"
-model: "MQTT-2"
-labels:
-- "openvino"
-description: "device mqtt profile for openvino prediction"
+description: "device mqtt profile for openvino predictions"
 deviceResources:
--
-name: prediction
-isHidden: false
-description: "prediction in JSON"
-properties:
-valueType: "Object"
-readWrite: "R"
-mediaType: "application/json"
+- name: prediction
+  description: "prediction payload in JSON"
+  properties:
+    valueType: "Object"
+    readWrite: "R"
+    mediaType: "application/json"
 ```
 
 #### Start
@@ -286,25 +302,14 @@ sudo snap start --enable edgex-device-mqtt
 ### 6. (EdgeX) Setup eKuiper
 eKuiper filters the prediction results and sends them back to EdgeX Message Bus.
 
-#### Install
+Install:
 ```bash
 sudo snap install edgex-ekuiper
 ```
 
-#### Configure
-
-Edit the edgex source file:
+Start and enable:
 ```bash
-sudo nano /var/snap/edgex-ekuiper/current/etc/sources/edgex.yaml
-```
-
-In the default section, change as below:
-* Change `topic: rules-events` to `topic: edgex/events/#`
-* Add `messageType: request`
-
-Restart:
-```bash
-sudo snap restart edgex-ekuiper
+sudo snap start --enable edgex-ekuiper
 ```
 
 Create a stream:
@@ -312,18 +317,18 @@ Create a stream:
 edgex-ekuiper.kuiper-cli create stream deviceMqttStream '() WITH (FORMAT="JSON",TYPE="edgex")'
 ```
 
-Create a rule:
+Create a rule that captures "person" predictions:
 ```
 edgex-ekuiper.kuiper-cli create rule filterPeople '
 {
   "sql":"SELECT regexp_matches(prediction, \"person\") AS person FROM deviceMqttStream WHERE meta(deviceName)=\"MQTT-test-device\"",
- "actions": [
-     {
-       "log":{}
-     },
+  "actions": [
+    {
+      "log":{}
+    },
     {
       "edgex": {
-       "connectionSelector": "edgex.redisMsgBus",
+        "connectionSelector": "edgex.redisMsgBus",
         "topicPrefix": "edgex/events/device",
         "messageType": "request",
         "deviceName": "people",
@@ -333,6 +338,7 @@ edgex-ekuiper.kuiper-cli create rule filterPeople '
   ]
 }'
 ```
+This rule can be extended to take into account the confidence for this prediction.
 
 > 🛑 Query results from EdgeX Core Data:
 > ```bash
