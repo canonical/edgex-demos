@@ -93,14 +93,14 @@ style I.3 fill:#f9f,stroke:#333,stroke-width:4px
 
 1. Create stream `edgexStream`:
 ```
-edgex-ekuiper.kuiper-cli create stream edgexStream '() WITH (TYPE="edgex")'
+edgex-ekuiper.kuiper create stream edgexStream '() WITH (TYPE="edgex")'
 ```
 
 This is our input entry point. This stream collects the data from EdgeX Message Bus and adds it to an eKuiper in-memory stream for further processing by other rules.
 
 2. Create rule `humidityFilter`:
 ```
-edgex-ekuiper.kuiper-cli create rule humidityFilter '
+edgex-ekuiper.kuiper create rule humidityFilter '
 {
  "sql":"SELECT humidity, deviceName FROM edgexStream WHERE humidity >= 0 AND humidity <= 100",
  "actions": [
@@ -123,7 +123,7 @@ the result in multiple successive rules running in parallel.
 
 3. Create rule `temperatureFilter`:
 ```
-edgex-ekuiper.kuiper-cli create rule temperatureFilter '
+edgex-ekuiper.kuiper create rule temperatureFilter '
 {
  "sql":"SELECT temperature, deviceName FROM edgexStream WHERE temperature >= -40 AND temperature <= 85",
  "actions": [
@@ -147,14 +147,14 @@ and the second rule could convert the temperature from Celsius to Fahrenheit.
 
 4. Create stream `rulesMerger`:
 ```
-edgex-ekuiper.kuiper-cli create stream rulesMerger '() WITH (DATASOURCE="result/source/#",TYPE="memory")'
+edgex-ekuiper.kuiper create stream rulesMerger '() WITH (DATASOURCE="result/source/#",TYPE="memory")'
 ```
 
 This is necessary to multiplex events from all our sources into one in preparation for the next rule.
 
 5. Create rule `aggregator`:
 ```
-edgex-ekuiper.kuiper-cli create rule aggregator '
+edgex-ekuiper.kuiper create rule aggregator '
 {
   "sql":"SELECT AVG(humidity) AS avgHumidity, AVG(temperature) AS avgTemperature, deviceName FROM rulesMerger GROUP BY meta(deviceName)=\"GasSensor\", HOPPINGWINDOW(ss, 30, 10)",
   "actions": [
@@ -191,14 +191,14 @@ This template is an important part of the rule because it is responsible for dec
 
 6. Create stream `aggregatorStream`:
 ```
-edgex-ekuiper.kuiper-cli create stream aggregatorStream '() WITH (DATASOURCE="edgex/events/device/aggregator",TYPE="edgex")'
+edgex-ekuiper.kuiper create stream aggregatorStream '() WITH (DATASOURCE="edgex/events/device/aggregator",TYPE="edgex")'
 ```
 
 This is used to take the data from EdgeX Message Bus back to the memory for further processing.
 
 7. Create rule `actuation`:
 ```
-edgex-ekuiper.kuiper-cli create rule actuation '
+edgex-ekuiper.kuiper create rule actuation '
 {
   "sql":"SELECT actuation FROM aggregatorStream WHERE actuation=true OR actuation=false",
   "actions": [
