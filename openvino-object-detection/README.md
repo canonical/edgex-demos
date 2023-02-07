@@ -315,12 +315,12 @@ sudo snap start --enable edgex-ekuiper
 
 Create a stream:
 ```
-edgex-ekuiper.kuiper-cli create stream deviceMqttStream '() WITH (FORMAT="JSON",TYPE="edgex")'
+edgex-ekuiper.kuiper create stream deviceMqttStream '() WITH (FORMAT="JSON",TYPE="edgex")'
 ```
 
 Create a rule that captures "person" predictions:
 ```
-edgex-ekuiper.kuiper-cli create rule filterPeople '
+edgex-ekuiper.kuiper create rule filterPeople '
 {
   "sql":"SELECT regexp_matches(prediction, \"person\") AS person FROM deviceMqttStream WHERE meta(deviceName)=\"MQTT-test-device\"",
   "actions": [
