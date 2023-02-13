@@ -94,8 +94,6 @@ curl -X PUT -d '{
 - `OutputImageSize`: Performs image rescaling. The format is `wxh`, for example, "640x480". 
 - `OutputVideoQuality`: Use a fixed video quality level. The range is an integer number between 1 to 31, with 31 being the worst quality. 
 
-Please have a look at [edgex-device-usb-camera](https://github.com/edgexfoundry/device-usb-camera#advanced-topics) for more video options.
-
 > ℹ The usb camera could be stopped by:
 > ```bash
 > curl -X PUT -d '{"StopStreaming": true }' http://localhost:59882/api/v2/device/name/example-camera/StopStreaming
@@ -120,6 +118,8 @@ Please have a look at [edgex-device-usb-camera](https://github.com/edgexfoundry/
 > sudo snap set edgex-device-usb-camera config.devicelist-protocols-usb-autostreaming=true
 > sudo snap restart edgex-device-usb-camera.device-usb-camera
 > ```
+
+Please have a look at [edgex-device-usb-camera](https://github.com/edgexfoundry/device-usb-camera/tree/main/docs/guides) for additional video options and configurations.
 
 ### 3. (Mosquitto) Setup MQTT Broker
 Install the mosquitto broker, or any other MQTT broker. We use port 1883 for MQTT (without TLS).
