@@ -119,7 +119,7 @@ curl -X PUT -d '{
 > sudo snap restart edgex-device-usb-camera.device-usb-camera
 > ```
 
-Please have a look at [edgex-device-usb-camera](https://github.com/edgexfoundry/device-usb-camera/tree/main/docs/guides) for additional video options and configurations.
+Please have a look at [EdgeX Device USB Camera guides](https://github.com/edgexfoundry/device-usb-camera/tree/main/docs/guides) for additional video options and configurations.
 
 ### 3. (Mosquitto) Setup MQTT Broker
 Install the mosquitto broker, or any other MQTT broker. We use port 1883 for MQTT (without TLS).
